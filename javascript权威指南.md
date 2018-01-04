@@ -1060,3 +1060,9 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
 - 使用outerHTML替换节点后，被替换的节点不再在页面中显示，但还存在与内存中。
 
 - insertAdjacnetHTML:位置包含beforebegin,afterbegin,beforeend,afterend，可以在上述四个位置处插入元素标签
+
+- 获取纯文本
+
+  - 非ie用textContent，性能好，防止xxs攻击
+  - ie用innerText
+  - 区别：[点击此处](https://developer.mozilla.org/zh-CN/docs/Web/API/Node/textContent)
