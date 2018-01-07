@@ -1,7 +1,6 @@
 此文件是跟着underscore源码手敲了一遍，边敲边记录边学习。
 
-照着敲的想法来自这篇[文章](https://juejin.im/entry/57ea104d816dfa005efb3e15)，感觉人家说的很有道理。
-作为一个菜鸟，选择相信并尝试一下这种方法，于是就有了这个文件。
+照着敲的想法来自这篇[文章](https://juejin.im/entry/57ea104d816dfa005efb3e15)，感觉人家说的很有道理。作为一个菜鸟，选择相信并尝试一下这种方法，于是就有了这个文件。
 
 参考资料：[underscore-analysis](https://github.com/hanzichi/underscore-analysis)
 
