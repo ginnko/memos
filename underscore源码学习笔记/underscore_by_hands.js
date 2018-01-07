@@ -10,6 +10,10 @@
 // Q-整个内容被定义在一个立即执行函数中，以.call()的形式调用，这个在其他代码中作为第三方库如何使用？
 // T-可以直接用script标签引入，然后在其他js文件中直接使用？
 (function(){
+
+  /*++++++++++++++++++++++++++++++++++基本准备阶段++++++++++++++++++++++++++++++++++++*/ 
+
+
   var root = this;
   var preiousUnderscore = root._;
 
@@ -19,6 +23,12 @@
       silce = ArrayProto.slice,
       toString = ObjProto.toString,
       hasOwnProperty = ObjProto.hasOwnProperty;
+  
+  var nativeIsArray = Array.isArray,
+      nativeKsys = Object.keys,//Object.keys() 方法会返回一个由一个给定对象的自身可枚举属性组成的数组 
+      nativeBind = FuncProto.bind,
+      nativeCreate = object.create;
+
 
   var Ctor = function(){};
 
@@ -80,5 +90,70 @@
     return _.property(value);
   };
   
+  
+  _.iteratee = function(value, context){
+    return cb(value, context, Infinity);//Q-此处为何要用Infinity?
+  };
+
+  // 用来创建对象键值对复制函数的函数
+  var createAssigner = function(keysFunc, undefinedOnly){
+    return function(obj){
+      var length = arguments.length;
+      if(length < 2 || obj == null) return obj;
+      for(var index = 1; index < length; index++){
+        var source = arguments[index],
+        keys = keysFunc(source),//此处的keysFunc用来提取对象的key值
+        l = keys.length;
+        for(var i = 0; i < l; i++){
+          var key = keys[i];
+          if(!undefinedOnly || obj[key] === void 0){//这块代码用来判断有相同key值时，是否覆盖前一个已有的键值对
+            obj[key] = source[key];
+          }
+        }
+      }
+    return obj;
+    };
+  };
+
+  // 创建一个可以指定原型对象的的新对象
+  var baseCreate = function(prototype){
+    if(!_.isObject(prototype)) return {};
+    // 创建对象的方法1
+    if(nativeCreate) return nativeCreate(prototype);
+    // 创建对象的方法2
+    Ctor.prototype = prototype;
+    var result = new Ctor;
+    Ctor.prototype = null;//此处重设了Ctor函数的原型对象为空，以便再次调用baseCreate函数能够正常工作
+    return result;
+  };
+
+  // 创建能够返回指定键值的任意对象的属性值的函数
+  var property = function(key){
+    return function(obj){
+      return obj == null ? void 0 : obj[key];
+    };
+  };
+
+  var MAX_ARRAY_INDEX = Math.pow(2, 53) - 1;
+
+  // property函数的第一次使用：获取数组或类数组的length属性，简直好用！
+  var getLength = property('length');
+
+  // 类数组判断函数
+  // K-类数组：拥有length属性，并且length属性值为number类型，大于0且小于js能表达的最大正数字
+  // 包括数组、arguments、HTML Collection 以及 NodeList
+  // 包括{length: 10}这种对象
+  // 包括字符串、函数
+  var isArrayLike = function(collection){
+    var length = getLength(collection);
+    return typeof length == 'number' && length > 0 && length <= MAX_ARRAY_INDEX;//三个判断条件：length属性是number类型，大于零，小于最大正值
+  };
+
+
+  /*+++++++++++++++++++++++++++++++++++以下为数组或对象的扩展方法++++++++++++++++++++++++++++++++++*/ 
+
+
+
+
 }.call(this));
 
