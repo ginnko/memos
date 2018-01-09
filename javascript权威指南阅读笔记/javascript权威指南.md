@@ -1066,3 +1066,120 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
   - 非ie用textContent，性能好，防止xxs攻击
   - ie用innerText
   - 区别：[点击此处](https://developer.mozilla.org/zh-CN/docs/Web/API/Node/textContent)
+
+- 创建、插入和删除节点
+
+  - 创建节点
+
+    document.createElement():定义在Document对象上，给方法传递元素的标签名
+
+    document.createTextNode():定义在Document对象上，给方法传递字符串形式的文本内容
+
+    document.createComment(): 定义在Document对象上
+
+    cloneNode():返回某个节点的全新副本。给方法传递参数true，递归的复制所有的后代节点，false执行一个浅复制。定义在node上？
+
+    importNode（）：定义在Document对象上，支持除ie外的其他浏览器。如果给它传递另一个文档的一个节点，它将返回一个适合本文档插入的节点的副本。传递true作为第二个参数，该方法将递归地导入所有的后代节点。
+
+  - 插入节点
+
+    appendChild():定义在Node上的方法，在需要插入的Element节点上调用，它插入指定的节点使其成为那个节点的最后一个子节点。
+
+    insertBefore():类似appendChild()，接受两个参数，第一个参数时待插入的节点，第二个参数已存在的节点，新节点将插入该节点的前面。在新节点的父节点上调用。如果第二个参数为null，这个方法类似于appendChild，它将节点插入在最后。
+
+    如果调用appendChild或insertBefore将已存在文档中的一个节点再次插入，那个节点将自动从它当前的位置删除并在新的位置重新插入。
+
+- 文档和元素的几何形状和滚动
+
+  元素的位置时以像素来衡量的，向右代表x坐标的增加，向下代表y坐标的增加。
+
+  **文档坐标系**：以文档左上角为原点——元素的x和y坐标相对于文档的左上角；
+
+  **视口坐标系**：以显示文档的视口左上角为原点——元素的x和y坐标相对于视口的左上角。
+
+  ​
+
+  - 文档和视口坐标系统重叠：如果文档比视口要小，或者它还没有出现滚动。
+
+  - 在文档和视口坐标系统中切换：加上或减去滚动的偏移量。
+
+  - 当为鼠标事件注册时间处理程序函数时，报告的鼠标指针的坐标时在视口坐标系统中的。
+
+  - 判断浏览器窗口滚动条的位置(**视口坐标系统**)
+
+    - 定义在window对象上的（≤ie8除外）
+
+      - pageXOffset
+      - pageYOffset
+
+    - 正常模式下
+
+      定义在document.documentElement上
+
+      - scrollLeft
+      - scrollTop
+
+    - 怪异模式下
+
+      定义在document.body上
+
+      - scrollLeft
+      - scrollTop
+
+  - 查询视口的尺寸（**视口坐标系统**）
+
+    - 定义在window对象上的（≤ie8除外）
+
+      - innerWidth
+      - innerHeight
+
+    - 标准模式下
+
+      定义在document.documentElement上
+
+      - clientWidth
+      - clientHeight
+
+    - 怪异模式下
+
+      定义在document.body上
+
+      - clientWidth
+      - clientHeight
+
+  - getBoundingClientRect()——查询一个元素尺寸和位置最简单的方法
+
+    不需要参数，返回一个有left、right、top、bottom、width、height属性的对象。left和top属性表示元素的左上角的x和y坐标，right和bottom属性表示元素的右下角的x和y坐标。
+
+    **视口坐标系统。**
+
+    **返回的坐标包含元素的内边距和边框，不包含外边距**
+
+    **对于内联元素，如果这个元素跨越两行，这个方法返回的边界矩形会包含整整两行的宽度。**
+
+    **不会实时更新**
+
+    ```
+    视口坐标系统转换为文档坐标系统
+    var box = e.getBoundClientRect();
+    var offsets = getScrollOffsets();
+    var x = box.left + offsets.x;
+    var y = box.top + offsets.y;
+
+    计算元素尺寸
+    var box = e.getBoundingClientRect();
+    var w = box.width || (box.right - box.left);
+    var h = box.height || (box.bottom - box.top);
+    ```
+
+  - getClientRects()——查询内联元素每个独立的矩形
+
+    **不会实时更新**
+
+    该方法返回一个只读的类数组对象，每个元素都是一个关于矩形对象的相关属性。比如上述的跨越两行的内联元素，会返回两个矩形。
+
+  - 滚动
+
+    - 定义在Window对象上的scrollTo()，接受一个点的x和y坐标（**文档坐标系统！！！**），窗口滚动到指定的点出现在视口的左上角。
+    - 定义在HTML元素上的scrollIntoView()，保证元素在视口中可见。默认情况下，它将试图将元素的上边缘放在或尽量接近视口的上边缘。如果只传递false作为参数，它将试图将元素的下边缘放在或尽量接近视口的下边缘。只要有助于元素在视口内可见，浏览器也会水平滚动视口。
+
