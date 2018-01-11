@@ -16,4 +16,4 @@ function getScrollOffsets(w){
 }
 
 var result = getScrollOffsets();
-console.log(result);
+console.table(result);

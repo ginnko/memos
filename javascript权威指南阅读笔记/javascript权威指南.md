@@ -1140,9 +1140,11 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
       - clientWidth
       - clientHeight
 
+      这两个属性类似offsetWidth和offsetHeight，但client系列的只包含内容和它的内边距。如果浏览器在内边距和边框之间添加了滚动条，clientWidth和clientHeight在其返回值中也不包含滚动条。会舍入为一个整数。对于i、span、code这种内联元素，clientWidht和clientHeight总是返回0。在文档的根元素上这两个属性的返回值和窗口的innerWidth和innerHeight属性值相等。
+
     - 怪异模式下
 
-      定义在document.body上
+      定义在document.body上，只读
 
       - clientWidth
       - clientHeight
@@ -1183,3 +1185,39 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
     - 定义在Window对象上的scrollTo()，接受一个点的x和y坐标（**文档坐标系统！！！**），窗口滚动到指定的点出现在视口的左上角。
     - 定义在HTML元素上的scrollIntoView()，保证元素在视口中可见。默认情况下，它将试图将元素的上边缘放在或尽量接近视口的上边缘。如果只传递false作为参数，它将试图将元素的下边缘放在或尽量接近视口的下边缘。只要有助于元素在视口内可见，浏览器也会水平滚动视口。
 
+  - offset系列查询元素的位置和尺寸
+
+    - offsetWidth和offsetHeight：任何HTML元素的只读属性offsetWidth和offsetHeight以css像素返回它的屏幕尺寸。**返回的尺寸包含元素的边框和内边距，除去外边距。**
+
+    - offsetLeft和offsetTop：返回元素相对于offsetParent的x和y坐标，如果offsetParent为null，则这两个属性是文档坐标。
+
+    - offsetParent：指定元素的offsetLeft和offsetTop所相对的父元素。
+
+      ```
+      此函数计算指定元素的文档坐标
+      当文档包含可滚动的且有溢出内容时，此方法无法正常工作，因为没有把滚动条考虑进来。
+      function getElementPosition(e){
+        var x = 0, y = 0;
+        while(e != null){
+          x += e.offsetLeft;
+          y += e.offsetTop;
+          e = e.offsetParent;
+        }
+        return {x: x, y: y};
+      }
+      ```
+
+      ​
+
+  - scrollWidth和scrollHeight
+
+    元素的内容区域加上它的内边距，再加上溢出内容的尺寸（比如滚动条）
+
+  - scrollLeft和scrollTop
+
+    可读写，指定元素的滚动条的位置，通过设置这两个属性可以让元素在其中滚动。（HTML元素没有类似window对象的scrollTo（）方法）
+
+- [querySelectorAll](https://developer.mozilla.org/zh-CN/docs/Web/API/Document/querySelectorAll)
+  - 返回一个**静态**NodeList类型
+  - 接受的参数是由逗号分割的css选择器
+  - 使用深度优先遍历
