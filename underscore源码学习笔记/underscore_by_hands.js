@@ -3,6 +3,7 @@
 // Q: 问题
 // T：想法
 // K: 知识点
+// Tip: 技巧
 
 
 
@@ -54,6 +55,7 @@
   _.VERSION = '1.8.3';
 
   // 不以下划线开头的函数均为内部方法
+  // 这个函数主要用来指定上下文
   var optimizeCb = function(func, context, argCount){
 
     if(context === void 0){
@@ -152,8 +154,143 @@
 
   /*+++++++++++++++++++++++++++++++++++以下为数组或对象的扩展方法++++++++++++++++++++++++++++++++++*/ 
 
+  // 作为参数传入的iteratee是个函数
+  // 类似于forEach
+  // 在传入的原数组或对象上直接处理
+  _.each = _.forEach = function(obj, iteratee, context){
+    iteratee = optimizeCb(iteratee, context);//注意这种用法！不会发生变量错误
+    var i, length;
+    if(isArrayLike(obj)){//默认不会传入{length: 10}这种数据
+      for(i = 0, length = obj.length; i < length; i++){
+        iteratee(obj[i], i, obj);
+      }
+    }else{
+      var keys = _.keys(obj);
+      for(i = 0, length = keys.length; i < length; i++){
+        iteratee(obj[keys[i]], keys[i], obj);//分别是 值、键、对象（值、位置、数组）
+      }
+    }
+
+    return obj;//此处返回处理后的对象，可供链式调用
+  }
+
+  // 类似于map
+  // 返回一个新的结果，原数组或对象没有改变
+  _.map = _.collect = function(obj, iteratee, context){
+    iteratee = cb(iteratee, context);
+
+    // 精彩的来了！Tip-
+    var keys = !isArrayLike(obj) && _.keys(obj),//第一步，如果obj是对象，第一个判断为真，keys的取值为obj的所有键值；如果是数组，第一个判断为false，即为keys的取值
+        length = (keys || obj).length,//如果obj是数组，即keys为false时，length的取值为数组元素的数量；如果obj是对象，length的取值是对象键值组成的数组的元素数量
+        results = Array(length);
+    
+    for(var index = 0; index < length; index++){
+      var currentKey = keys ? keys[index] : index;//一个key值控制了所有的后续操作，厉害！
+      results[index] = interatee(obj[currentKey], currentKey, obj);
+    }
+
+    return results;
+  }
+
+  // 内部函数，用来构建reduce、reduceRight
+  function createReduce(dir){
+    // Q-此处为何要把iterator单独定义出来？直接放进下面的函数里也是可以的吧？单独拿出来有何用意？这也算闭包吧？
+    function iterator(obj, iteratee, memo, keys, index, length){
+      for(; index >= 0 && index < length; index += dir){
+        var currentKey = keys ? keys[index] : index;
+        memo = iteratee(memo, obj[currentKey], currentKey, obj);//对memo进行累计迭代
+      }
+      return memo;
+    }
+
+    //reduce、reduceRight可以传入4个参数，memo为初始值，context为iteratee中的this指向，这两个参数为可选。 
+    return function(obj, iteratee, memo, context){
+      iteratee = optimizeCb(iteratee, context, 4);
+
+      // 此处又使用了对数组和对象的短路操作
+      var keys = !isArrayLike(obj) && _.keys(obj),
+          length = (keys || obj).length,
+          index = dir > 0? 0 : length - 1;
+
+      // 处理没有初始累加值的情况
+      if(arguments.length < 3){
+        memo = obj[keys? keys[index] : index];
+        index += dir;
+      }
+
+      return iterator(obj, iteratee, memo, keys, index, length);
+    };
+  }
+
+  _.reduce = _.foldl = _.inject = createReduce(1);
+  _.reduceRight = _.foldr = createReduce(-1);
+
+  _.find = _.detect = function(obj, predicate, context){
+    var key;
+    if(isArrayLike(obj)){
+      key = _.findIndex(obj, predicate, context);
+    }else{
+      key = _.findKey(obj, predicate, context);
+    }
+
+    // 此处设计的很巧妙啊！如果key没有满足条件，则默认返回undefined
+    // 此处的-1猜测是上面的_.findIndex和_findKey两个函数的返回值
+    if(key !== void 0 && key !== -1) return obj[key];
+  };
+
+  _.filter = _.select = function(obj, predicate, context){
+    var results = [];
+    predicate = cb(predicate, context);
+    _.each(obj, function(value, index, list){
+      if(predicate(value, index, list)) results.push(value);
+    });
+  };
+
+  // _.filter函数的补集函数
+  // !!!_.negate()函数应该是个很有意思的函数！！！
+
+  _.reject = function(obj, predicate, context){
+    return _.filter(obj, _.negate(cb(predicate)), context);
+  };
+
+  _.every = _.all = function(obj, predicate, context){
+    predicate = cb(predicate, context);
+
+    var keys = !isArrayLike(obj) && _.keys(obj),
+        length = (keys || obj).length;
+
+    for(var index = 0; index < length; index++){
+      var currentKey = keys > keys[index] : index;
+      if(!predicate(obj[currentKey], currentKey, obj))
+      return false;
+    }
+    return true;
+  };
+
+  _.some = _.any = function(obj, predicate, context){
+    predicate = cb(predicate, context);
+
+    var keys = !isArrayLike(obj) && _.keys(obj),
+        length = (keys || obj).length;
+    for(var index = 0; index < length; index++){
+      var currentKey = keys ? keys[index] : index;
+      if(predicate(obj[currentKey], currentKey, obj)) return true;
+    }
+    return false;
+  };
+
+  _.contains = _.includes = _.include = function(obj, item, fromIndex, guard){
+    if(!isArrayLike(obj)) obj = _.values(obj);
+    
+    //此处的guard是干嘛使的？ 
+    if(typeof fromIndex != 'number' || guard) fromIndex = 0;
+
+    return _.indexOf(obj, item, fromIndex) >= 0;
+  }
+
+
+
 
 
 
 }.call(this));
-
