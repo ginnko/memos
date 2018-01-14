@@ -176,6 +176,8 @@
 
   // 类似于map
   // 返回一个新的结果，原数组或对象没有改变
+  // 注意，此处的iteratee没有带参数
+  // 这一步操作会对iteratee进行进一步操作
   _.map = _.collect = function(obj, iteratee, context){
     iteratee = cb(iteratee, context);
 
@@ -244,6 +246,7 @@
     _.each(obj, function(value, index, list){
       if(predicate(value, index, list)) results.push(value);
     });
+    return results;
   };
 
   // _.filter函数的补集函数
@@ -288,9 +291,106 @@
     return _.indexOf(obj, item, fromIndex) >= 0;
   }
 
+  _.invoke = function(obj, method){
+    var args = slice.call(arguments, 2);
 
+    var isFunc = _.isFunction(method);
+
+    // Q-对这个函数不甚明了，感觉除了多传入的参数能作为回调函数的参数使用外，和map函数没有什么大的区别
+    return _.map(obj, function(value){
+      var func = isFunc ? method : value[method];
+      return func == null ? func : func.apply(value, args);
+    });
+  }
+
+  // 这个函数中对map的使用，真是对map函数有了更深的认识
+  // _.property（）是一个闭包，会返回一个函数
+  _.pluck = function(obj, key){
+    return _.map(obj, _.property(key));
+  };
+
+  // attrs是键值对
+  _.where = function(obj, attrs){
+    return _.filter(obj, _.matcher(attrs));
+  };
+
+  // 从_.where和_.findWhere可以看出，_.filter和_.find这两个函数是更基础的函数
+  _.findWhere = function(obj, attrs){
+    return _.find(obj, _.matcher(attrs));
+  };
+
+  // 
+  _.max = function(obj, iteratee, context){
+    // 此处这个-Infinity很好用啊！
+    var result = -Infinity, lastComputed = -Infinity, value, computed;
+
+    if(iteratee == null && obj != null){
+      obj = isArrayLike(obj) ? obj : _.values(obj);
+
+      for(var i = 0, length = obj.length; i < length; i++){
+        value = obj[i];
+        if(value > result){
+          result = value;
+        }
+      }
+    }else{
+      iteratee = cb(iteratee, context);
+
+      _.each(obj, function(value, index, list){
+        computed = iteratee(value, index, list);
+        if(conputed > lastComputed || computed === -Infinity && result === -Infinity){
+          result = value;
+          lastComputed = computed;
+        }
+      });
+    }
+    return result;
+  };
+
+
+  _.min = function(obj, iteratee, context){
+    var result = Infinity, lastComputed = Infinity, value, computed;
+    
+    if(iteratee == null && obj !==null){
+      obj = isArrayLike(obj) ? obj : _.values(pbj);
+      for(var i = 0, length = obj.length; i < length; i++){
+        value = obj[i];
+        if(value < result){
+          retult = value;
+        }
+      }
+    }else{
+      iteratee = cb(iteratee, context);
+      _.each(obj, function(value, index, list){
+        computed = iteratee(value, index, list);
+        if(computed < lastComputed || computed === Infinity && result === Infinity){
+          result = value;
+          lastComputed = computed;
+        }
+      });
+    }
+    return result;
+  };
+
+  // 这个函数使用Fisher-Yats随机算法
+  // 参考这里的说明：https://github.com/hanzichi/underscore-analysis/issues/15
+  // 其中_.random(0, index);返回一个0～index之间的随机整数
+  _.shuffle = function(obj){
+    var set = isArrayLike(obj) ? obj : _values(obj);
+    var length = set.length;
+
+    var shuffled = Array(length);
+
+    for(var index = 0, rand; index < length; index++){
+      rand = _.random(0, index);
+      if(rand !== index) shuffled[index] = shuffled[rand];
+      shuffled[rand] = set[index];//补充新值进入这个圈子
+    }
+    return shuffled;
+  };
 
 
 
 
 }.call(this));
+xinzhi
