@@ -1221,3 +1221,81 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
   - 返回一个**静态**NodeList类型
   - 接受的参数是由逗号分割的css选择器
   - 使用深度优先遍历
+
+此章未结束，待续
+
+---
+
+## 第十六章 脚本化css
+
+- `父元素 position:relative;left:0;top:0;`
+
+  ```
+  假设父元素position: relative; 有padding的状态下：如果有top/left:0 ：子元素紧贴父元素padding的边界（因为父元素包含块的边界就是padding边界）如果没有设置值：子元素紧贴父元素content的边界（其实此时值为auto）
+  ```
+
+- 另一种指定元素尺寸的方法是
+
+  - 指定元素宽度：同时指定left和right属性，如果有width属性，则width属性会覆盖right属性
+  - 指定元素高度：同时指定top和bottom属性，如果有height属性，则height属性会覆盖bottom属性
+
+- z-index属性
+
+  - 对于定位的重叠元素：当两个或多个元素重叠在一起时，它们按照从低到高的z-index顺序绘制，如果重叠元素的z-index值一样，它们按照在文档中出现的顺序绘制，最后一个重叠的元素显示在最上面，z-index的默认值为0，且z-index只对兄弟元素有效。
+  - 对于非定位的元素：总是以防止重叠的方式进行布局，z-index属性不会应用在它们上面。它们默认的z-index的值也是0，z-index为正值的定位元素显示在常规文档流的上面，z-index为负值的定位元素显示在常规文档流的下面。
+
+- 标准的css盒模型规定width和height样式属性给定内容区域的尺寸，并且不包含内边距和边框，可以称此盒模型为内容盒模型。
+
+- 在主流浏览器中已经可以使用不带前缀的box-sizing属性。
+
+- calc（）可以在≥ie9中使用
+
+  `<div style="width: calc(50% - 12px); padding: 10px; border: solid black 2px;">`
+
+  //没有想过要这样使用诶
+
+- visibility和display属性对绝对定位和固定定位的元素的影响等价，因为这些元素不是文档布局的一部分，隐藏和显示定位元素时一般首选visibility属性。
+
+- rgba可以在ie9中使用
+
+- 如果没有为指定背景颜色或图像，它的背景通常透明。
+
+- **ie9不支持opacity属性**
+
+  ```
+  //兼容性的使用
+  opacity: .75;
+  filter: alpha(opacity = 75);//ie下的使用，没有小数点
+  ```
+
+  ​
+
+- cssStyleDeclaration对象
+
+  ```
+  e.style.fontSize = "24px";
+  e.style.fontWeight = "bold";
+  e.style.color = "blue";
+  //具体样式名中带连字符的换成驼峰写法
+  //保留字的前面加上css
+
+  e.style.margin = topMargin + "px " + rightMargin + "px " + bottomMargin + "px " + leftMargin + "px";//必须带单位
+
+
+  ```
+
+- 通过js查询和设置css样式
+
+  **这两种用法对应内联样式 ，读取不是定义在内联样式的属性值时，会返回空字符串。**
+
+  ```
+  设置
+  e.setAttribute("style", s);
+  e.style.cssText = s;
+
+  查询
+  s = e.getAttribute("style");
+  s = e.style.cssText;
+  ```
+
+  ​

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    div.window{
+      position: absolute;
+      width: 300px;
+      height: 200px;
+      border: 3px outset gray;
+    }
+    div.titlebar{
+      position: absolute;
+      top: 0px;
+      height: 18px;
+      width: 290px;
+      background-color: #aaa;
+      border-bottom: groove gray 2px;
+      padding: 3px 5px 2px 5px;
+      font: bold 11px sans-serif;
+    }
+    div.content{
+      position: absolute;
+      top: 25px;
+      height: 165px;
+      width: 290px;
+      padding: 5px;
+      overflow: auto;
+      background-color: #fff;
+    }
+    div.translucent{
+      opacity: .75;
+      filter: alpha(opacity=75);
+    }
+  </style>
+</head>
+<body>
+  <div class="window" style="left: 10px; top: 10px; z-index:10;">
+    <div class="titlebar">Test Window</div>
+    <div class="content">
+      1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>0<br>
+      1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>0<br>
+    </div>
+  </div>
+  <div class="window" style="left: 75px; top: 110px; z-index: 20;">
+    <div class="titlebar"> Another window
+
+    </div>
+    <div class="content translucent" style="background-color: #ccc; font-weight: bold;">
+      This is another window. Its <tt>z-index</tt> puts it on top of the other one.
+      css style make its content crea translucnet, in browsers that support that.
+    </div>
+  </div>
+</body>
+</html>
