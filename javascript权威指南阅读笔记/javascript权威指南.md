@@ -1303,3 +1303,21 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
   - 只读
   - window.getComputedStyle(元素, secondProp);
     其中secondProp必选项,通常是null,空字符串,或者":before",":after",":first-line",":first-letter"
+  - 计算样式的值是绝对值
+  - 不计算复合属性，不要查询margin属性，而是使用marginLeft和marginTop等
+
+- [String.prototype.match()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String/match)
+如果字符串匹配到了表达式，会返回一个数组，数组的第一项是进行匹配完整的字符串，之后的项是用圆括号捕获的结果。
+
+- className
+`function grabAttention(e){e.className = "attention";}`
+`function releaseAttention(e){e.className = "";}`
+
+- classList
+  - html5中给每个元素定义了classList属性
+  - 是一个只读的类数组对象
+  - 重要方法：
+    - add():从元素的class属性中添加一个类名
+    - remove():从元素的class属性中清除一个类名
+    - toggle():如果不存在类名就添加一个，否则就删除它
+    - contains():检测class属性中是否包含一个指定的类名
