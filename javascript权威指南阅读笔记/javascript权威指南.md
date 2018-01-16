@@ -1298,4 +1298,8 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
   s = e.style.cssText;
   ```
 
-  ​
+- 计算样式
+  - 是一个cssStyleDeclaration对象
+  - 只读
+  - window.getComputedStyle(元素, secondProp);
+    其中secondProp必选项,通常是null,空字符串,或者":before",":after",":first-line",":first-letter"
