@@ -1315,10 +1315,39 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
 
 - classList
   - html5中给每个元素定义了classList属性
-  - 是一个只读的类数组对象
+  - 是一个只读的类数组对象,但是可以通过下面的方法修改内容,这叫哪门子的只读?!
   - 具有实时性
   - 重要方法：
     - add():从元素的class属性中添加一个类名
     - remove():从元素的class属性中清除一个类名
     - toggle():如果不存在类名就添加一个，否则就删除它
     - contains():检测class属性中是否包含一个指定的类名
+  - 例
+    ````
+    div.classList.remove("foo");
+    div.classList.add("anotherclass");
+
+    // if visible is set remove it, otherwise add it
+    div.classList.toggle("visible");
+
+    // add/remove visible, depending on test conditional, i less than 10
+    div.classList.toggle("visible", i < 10 );
+
+    alert(div.classList.contains("foo"));
+
+    // add or remove multiple classes
+    div.classList.add("foo", "bar");
+    div.classList.remove("foo", "bar");
+
+    // add or remove multiple classes using spread syntax
+    let cls = ["foo", "bar"];
+    div.classList.add(...cls); 
+    div.classList.remove(...cls);
+
+    // replace class "foo" with class "bar"
+    div.classList.replace("foo", "bar");
+    ````
+
+- cssStyleSheet对象
+  表示样式表本身
+  - **document.styleSheets**属性是一个只读的类数组对象,它包含CSSStyleSheet对象,表示与文档关联在一起的样式表.
