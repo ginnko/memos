@@ -1350,4 +1350,24 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
 
 - cssStyleSheet对象
   表示样式表本身
-  - **document.styleSheets**属性是一个只读的类数组对象,它包含CSSStyleSheet对象,表示与文档关联在一起的样式表.
+  - **document.styleSheets**属性是一个只读的类数组对象,它包含CSSStyleSheet对象(它的元素是CSSStyleSheet对象),表示与文档关联在一起的样式表.
+  - document.styleSheets的元素有一个**disable**属性,用来控制样式表的启闭.
+  - var firstRule = document.styleSheets[0].cssRules[0];(cssRules包含样式表的所有规则,是个数组!!!!!,ie用rules代替cssRules)
+  - document.styleSheets[]上定义的两个方法:
+    1. insertRule()(ie 用addRule())
+    2. deleteRule()(ie 用removeRule())
+
+- **相对于编辑样式表或是增加新规则而言,让样式表保持静态并对元素的className属性编程更好.**
+
+- cssRules[]的两个属性
+  1. selectorText:表示选择器
+  2. style:表示
+    document.styleSheets[].cssRules[].style.**cssText**:获得样式的文本表示
+
+----
+## 第17章 事件处理
+
+- 事件目标: 事件发生的对象或与事件发生相关联的对象
+- 事件对象: 与特定事件相关,并且包含有关该事件详细信息的对象.
+  所有的事件对象都有用来指定事件类型的type属性和指定事件目标的target属性.
+- 事件传播(冒泡): 浏览器决定哪个对象触发其事件处理程序的过程.由文档深层向表层传递.
