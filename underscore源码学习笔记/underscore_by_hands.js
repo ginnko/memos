@@ -416,6 +416,149 @@
     }), 'value');
   };
 
+  // behavior是分类规则
+  var group = function(behavior){
+    return function(obj, iteratee, context){
+      var result = {};
+      iteratee = cb(iteratee, context);
+      _.each(obj, function(value, index){
+        var key = iteratee(value, index, obj);
+        behavior(result, value, key);
+      });
+      return result;
+    };
+  };
+
+_.groupBy = group(function(result, value, key){
+  if(_.has(result, key)){
+    result[key].push(value);
+  }else{
+    result[key] = [value];//此处初始化
+  }
+});
+
+_.indexBy = group(function(result, value, key){
+  result[key] = value;
+});
+
+_countBy = group(function(result, value, key){
+  if(_.has(result, key)){
+    result[key]++;
+  }else{
+    result[key] = 1;//此处初始化
+  }
+});
+
+
+_.toArray = function(obj){
+  if(!obj){
+    return [];
+  }
+  if(_.isArray(obj)){
+    return slice.call(obj);
+  }
+/*   _.identity = function(value) {
+  return value;
+};*/
+  if(isArrayLike(obj)){
+    return _.map(obj, _.identity);
+  }
+  return _.values(obj);
+  /*  _.values = function(obj) {
+    // 仅包括 own properties
+    var keys = _.keys(obj);
+    var length = keys.length;
+    var values = Array(length);
+    for (var i = 0; i < length; i++) {
+      values[i] = obj[keys[i]];
+    }
+    return values;
+};*/ 
+};
+
+_.size = function(obj){
+  if(obj == null){
+    return 0
+  }
+  return isArrayLike(obj) ? obj.length : _.keys(obj).length;
+};
+
+_.partition = function(obj, predicate, context){
+  predicate = cb(predicate, context);
+  var pass = [], fail = [];
+  _.each(obj, function(value, key, obj){
+    (predicate(value, key, obj) ? pass : fail).push(value);
+  });
+  return [pass, fail];//这种字面量形式是合法的。
+};
+
+/*+++++++++++++++++++++++++++++++++++以下为数组的扩展方法++++++++++++++++++++++++++++++++++*/ 
+
+_.first = _.head = _.take = function(array, n ,guard){
+  if(array == null){
+    return void 0;
+  }
+  // The **guard** check
+  // allows it to work with `_.map`.
+  if(n == null || guard){//Q-就不明白了，这个guard到底是干嘛的，好几个地方都出现了
+    return array[0];
+  }
+  return _.initial(array, array.length - n);
+};
+
+// 剔除后n个元素
+_.initial = function(array, n, guard){
+  return slice.call(array, 0, Math.max(0, array.length - (n == null || guard ? 1: n)));
+};
+
+_.last = function(array, n, guard){
+  if(array == null){
+    return void 0;
+  }
+  if(n == null || guard){
+    return array[array.length - 1];
+  }
+  return _.rest(array, Math.max(0, array.length - n));
+};
+
+// 剔除前n个元素
+_.rest = _.tail = _.drop = function(array, n, guard){
+  return slice.call(array, n == null || guard ? 1 : n);
+};
+
+// 假值：false null undefined '' NaN 0
+_.compact = function(array){
+  return _.filter(array, _.identity);//_.identity在_.filter()中作为一个if条件的判断结果，假值返回false
+};
+
+
+//数组展开函数
+// input：数组或类数组
+// shallow：布尔值，true表示只展开一层
+// strict：布尔值，true表示不保存非数组元素
+// startIndex：表示处理的起始位置
+// [[1, 2, [3, 4]]]
+
+var flatten = function(input, shallow, strict, startIndex){
+  var output = [], idx = 0;
+  for(var i = startIndex || 0, length = getLength(input); i < length; i++){
+    var value = input[i];
+    if(isArrayLike(value) && (_.isArray(value) || _.isArguments(value))){
+      if(!shallow){
+        value = flatten(value, shallow, strict);
+      }
+      var j = 0, len = value.length;
+      output.length += len;
+      while(j < len){
+        output[idx++] = value[j++];
+      }
+    }else if(!strict){
+      output[idx++] =  value;
+    }
+  }
+  return output;
+};
+
+
 
 }.call(this));
-xinzhi
