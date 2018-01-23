@@ -1222,6 +1222,46 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
   - 接受的参数是由逗号分割的css选择器
   - 使用深度优先遍历
 
+- HTML表单
+HTML表单时第一代web应用程序背后的运作机制,**它根本不需要javascript!**
+  - document.forms是一个HTMLCollection对象,可以通过数字序号或id或name来选取表单元素.
+  ````
+  <form name="shipping">
+  <fieldset><legend>Shipping Method</legend>
+  <label><input type="radio" name="method" value="1st">First-class</label>
+  <label><input type="radio" name="method" value="2day">2-day Air</label>
+  <label><input type="radio" name="method" value="overnite">Overnight</label>
+  </fieldset>
+  </form>
+
+  var methods = document.forms.shipping.elements.method;//由于forms本身有method属性,所以要先使用表单对象的elements属性
+````
+  - 为了判定用户的选择,需要遍历数组中的表单元素并检测它们的checked属性
+  ````
+  var shipping_method;
+  for(var i = 0; i < methods.length; i++)
+  if (methods[i].checked) shipping_method = methods[i].value;
+  ````
+  - onreset()
+  表单提交前,滴啊用onsubmit程序,它通过返回false能够取消提交动作.onsubmit事件处理程序只能通过单击'提交'按钮来触发,直接调用表单的submit()方法不触发onsubmit事件处理程序.
+
+  - onreset()
+  onreset()事件在表单重置之前被调用,通过返回false能够组织表单元素被重置.onreset事件只能通过单击重置按钮来触发.直接调用表单的reset()方法不触发onreset事件处理程序.
+
+  - 事件的触发
+    - 当按钮表单元素激活时,会触发click事件
+    - 在一个文本域中,当用户改变了元素的值然后将焦点移到其他元素上时会触发change事件
+    - 从下拉列表中选择一个选项后不改变焦点会触发change事件么?
+    - 表单元素收到键盘的焦点时会触发focus事件,失去焦点时会触发blur事件
+  - 在事件处理程序代码中,关键字this时触发该事件的文档元素的一个引用.`<form>`元素中的元素都有一个form属性,用来指代包含该元素的表单.这些元素的事件处理程序总是能通过this.form来得到Form对象的引用. 而this.form.x指代该表单中以x命名的元素.
+  - 按钮
+  以input定义的按钮会将value属性值以纯文本显示,以button元素定义的按钮会将元素的一切内容显示出来.
+
+  提交和重置元素本就是按钮,但它们有与之相关联的默认动作(表单的提交和重置).如果onclick事件处理程序返回false,这些按钮的默认动作就不再执行.一般常用的是使用Form对象本身的onsubmit事件处理程序来执行表单的校验,而不使用提交元素的onclick事件处理程序.
+
+  - 开关按钮
+  单选和复选框都定义了checked属性,该属性是可读写的布尔值,指示了元素当前是否被选中.
+
 此章未结束，待续
 
 ---
@@ -1371,3 +1411,10 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
 - 事件对象: 与特定事件相关,并且包含有关该事件详细信息的对象.
   所有的事件对象都有用来指定事件类型的type属性和指定事件目标的target属性.
 - 事件传播(冒泡): 浏览器决定哪个对象触发其事件处理程序的过程.由文档深层向表层传递.
+- 事件捕获:在容器元素上注册的特定处理程序有机会在时间传播到真实的目标之前拦截它
+- 表单事件
+  - 提交和重置表单时,会触发submit和reset事件;
+  - 用户和类按钮表单元素(单选按钮和复选框)交互时,会发生click事件
+  - 当用户通过输入文字,选择选项或选择复选框来改变相应表单元素的状态时,这些通常**维护某种状态**的表单元素会触发change事件;
+  - 对于文本输入域,只有用户和表单元素完成交互并通过tab键或单击的方式移动焦点到其他元素上时才会触发change事件;
+  - 响应通过键盘改变焦点的表单元素在得到和失去焦点时会分别触发focus和blur事件.
