@@ -17,3 +17,58 @@ function getScrollOffsets(w){
 
 var result = getScrollOffsets();
 console.table(result);
+
+
+
+
+/*=======================================================*/ 
+
+setTimeout(function () {
+  console.log(1);
+}, 0);
+
+new Promise(function executor(resolve) {
+  console.log(2);
+  for (var i = 0; i < 10000; i++) {
+    i == 9999 && resolve();
+  }
+  console.log(3);
+}).then(function () {
+  console.log(4);
+});
+
+console.log(5);
+
+setTimeout(function () {
+  console.log(1);
+}, 0);
+
+setTimeout(function () {
+  console.log(3);
+}, 0);
+
+console.log(5);
+
+/*==================================================*/
+
+var memoizer = function(memo, formula) {
+  var recur = function(n) {
+    var result = memo[n];
+    if (typeof result !== 'number') {
+      result = formula(recur, n);
+      memo[n] = result;
+    }
+
+    return result;
+  }
+
+  return recur;
+}
+
+var fibon = memoizer([0, 1], function(recur, n) {
+  return recur(n - 1) + recur(n - 2);
+});
+
+var fact = memoizer([1, 1], function(recur, n) {
+  return n * recur(n - 1);
+});

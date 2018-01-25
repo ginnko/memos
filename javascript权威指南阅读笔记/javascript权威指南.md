@@ -1217,13 +1217,45 @@ web页面使用多个`<iframe>`元素或者打开其他浏览器窗口时，**�
 
     可读写，指定元素的滚动条的位置，通过设置这两个属性可以让元素在其中滚动。（HTML元素没有类似window对象的scrollTo（）方法）
 
+- 一组用来查询页面元素尺寸和位置的属性和方法
+  - `document.documentElement.scrollTop`, `document.documentElement.scrollLeft`:获取滚动条的位置,在所有浏览器中可以工作
+
+  - `document.documentElement.clientHeight`, `document.documentElement.clientWidth`:获取视口的尺寸,在所有浏览器中可以工作
+
+  - `element.getBoundingClientRect()`:获取元素在视口坐标中的位置(返回的坐标包含元素的边框和内边距,但不包含外边距,不会实时更新!边界矩形,针对内联元素!),结合上面获取滚动条位置的方法可以获得元素在文档坐标中的位置,及尺寸,可以用来获取整个文档的,以小数显示
+
+  - `element.getClientReats`:获取单个矩形,不会实时更新!
+
+  - `document.documentElement.scrollHeight`: 获取整个页面的高度
+
+  - 三组定义在所有html元素上的属性
+
+    | 系列      | 属性           | 解释                                       | 备注                     |
+    | ------- | ------------ | ---------------------------------------- | ---------------------- |
+    | offset- | offsetWidth  | 返回元素的像素宽度,包含元素的边框和内边距                    | 用在html上和scrollWidth相等  |
+    |         | offsetHeight | 返回元素的像素高度,包含元素的边框和内边距                    | 用在html上和scrollHeight相等 |
+    |         | offsetLeft   | 如果offsetParent=null,返回元素的文档横坐标,否则返回相对祖先元素的横坐标 |                        |
+    |         | offsetTop    | 如果offsetParent=null,返回元素的文档纵坐标,否则返回相对祖先元素的纵坐标 |                        |
+    |         | offsetParent | 指定上述四个属性所相对的父元素                          |                        |
+    | client- | clientWidth  | 返回元素的屏幕显示宽度,只包含内容和内边距,内联元素为0             | 用在html上返回约等于?浏览器尺寸     |
+    |         | clientHeight | 返回元素的屏幕显示高度,只包含内容和内边距,内联元素为0             | 用在html上返回约等于?浏览器尺寸     |
+    |         | clientLeft   | 感觉唯一的用途就是间接获取滚动条的宽度...                   |                        |
+    |         | clientTop    | 感觉唯一的用途就是间接获取滚动条的高度...                   |                        |
+    | scroll- | scrollWidth  | 元素的内容区域加上它的内边距再加上任何溢出内容部分的宽度             |                        |
+    |         | scrollHeight | 元素的内容区域加上它的内边距再加上任何溢出内容部分的高度             |                        |
+    |         | scrollLeft   | 滚动条的横向位置                                 |                        |
+    |         | scrollTop    | 滚动条的纵向位置                                 |                        |
+
+    ​
+
+
 - [querySelectorAll](https://developer.mozilla.org/zh-CN/docs/Web/API/Document/querySelectorAll)
   - 返回一个**静态**NodeList类型
   - 接受的参数是由逗号分割的css选择器
   - 使用深度优先遍历
 
 - HTML表单
-HTML表单时第一代web应用程序背后的运作机制,**它根本不需要javascript!**
+  HTML表单时第一代web应用程序背后的运作机制,**它根本不需要javascript!**
   - document.forms是一个HTMLCollection对象,可以通过数字序号或id或name来选取表单元素.
   ````
   <form name="shipping">
@@ -1235,9 +1267,10 @@ HTML表单时第一代web应用程序背后的运作机制,**它根本不需要j
   </form>
 
   var methods = document.forms.shipping.elements.method;//由于forms本身有method属性,所以要先使用表单对象的elements属性
+  ````
 ````
   - 为了判定用户的选择,需要遍历数组中的表单元素并检测它们的checked属性
-  ````
+````
   var shipping_method;
   for(var i = 0; i < methods.length; i++)
   if (methods[i].checked) shipping_method = methods[i].value;
@@ -1363,30 +1396,30 @@ HTML表单时第一代web应用程序背后的运作机制,**它根本不需要j
     - toggle():如果不存在类名就添加一个，否则就删除它
     - contains():检测class属性中是否包含一个指定的类名
   - 例
-    ````
+  ````
     div.classList.remove("foo");
     div.classList.add("anotherclass");
-
+    
     // if visible is set remove it, otherwise add it
     div.classList.toggle("visible");
-
+    
     // add/remove visible, depending on test conditional, i less than 10
     div.classList.toggle("visible", i < 10 );
-
+    
     alert(div.classList.contains("foo"));
-
+    
     // add or remove multiple classes
     div.classList.add("foo", "bar");
     div.classList.remove("foo", "bar");
-
+    
     // add or remove multiple classes using spread syntax
     let cls = ["foo", "bar"];
     div.classList.add(...cls); 
     div.classList.remove(...cls);
-
+    
     // replace class "foo" with class "bar"
     div.classList.replace("foo", "bar");
-    ````
+    ​````
 
 - cssStyleSheet对象
   表示样式表本身
@@ -1408,13 +1441,28 @@ HTML表单时第一代web应用程序背后的运作机制,**它根本不需要j
 ## 第17章 事件处理
 
 - 事件目标: 事件发生的对象或与事件发生相关联的对象
+
 - 事件对象: 与特定事件相关,并且包含有关该事件详细信息的对象.
   所有的事件对象都有用来指定事件类型的type属性和指定事件目标的target属性.
+
 - 事件传播(冒泡): 浏览器决定哪个对象触发其事件处理程序的过程.由文档深层向表层传递.
+
 - 事件捕获:在容器元素上注册的特定处理程序有机会在时间传播到真实的目标之前拦截它
+
 - 表单事件
   - 提交和重置表单时,会触发submit和reset事件;
   - 用户和类按钮表单元素(单选按钮和复选框)交互时,会发生click事件
   - 当用户通过输入文字,选择选项或选择复选框来改变相应表单元素的状态时,这些通常**维护某种状态**的表单元素会触发change事件;
   - 对于文本输入域,只有用户和表单元素完成交互并通过tab键或单击的方式移动焦点到其他元素上时才会触发change事件;
   - 响应通过键盘改变焦点的表单元素在得到和失去焦点时会分别触发focus和blur事件.
+  - focus和blur事件不会冒泡,其他所有表单事件都可以
+
+- window事件
+
+  window事件是指事件的发生与浏览器窗口本身而非窗口中显示的任何特定文档内容相关.
+
+  - load事件:当文档和其所有外部资源(比如图片)完全加载并显示给用户时就会触发它.
+  - unload事件:当用户离开当前文档转向其它文档时会触发它,可以用于保存用户的状态.
+  - beforeunload事件:如果这个事件返回字符串,那么在新页面加载之前,字符串会出现在展示给用户确认的对话框上,这样用户将有机会取消其跳转而留在当前页面上.
+  - focus事件和blur事件也能用作window事件,当浏览器窗口从操作系统中得到或失去键盘焦点时会触发它们.
+  - 当用户调整浏览器窗口大小或滚动它时,会触发resize和scroll事件
