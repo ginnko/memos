@@ -338,7 +338,7 @@
 
       _.each(obj, function(value, index, list){
         computed = iteratee(value, index, list);
-        if(conputed > lastComputed || computed === -Infinity && result === -Infinity){
+        if(computed > lastComputed || computed === -Infinity && result === -Infinity){
           result = value;
           lastComputed = computed;
         }
@@ -559,6 +559,189 @@ var flatten = function(input, shallow, strict, startIndex){
   return output;
 };
 
+_.flatten = function(array, shallow){
+  return flatten(array, shallow, false);//strict为false表示可以保存类数组的元素
+};
 
+_without = function(array){
+  return _.difference(array, slice.call(arguments, 1));
+};
+
+
+// 数组去重
+// 如果第二个参数‘isSorted’为true，说明事先已经知道数组有序，程序会跑一个更快的算法（一次线性比较，元素和数组前一个元素比较即可）
+// 如果有第三个参数iteratee，则对数组每个元素迭代，对迭代后的结果进行去重，返回去重后的数组
+// 暴露的api中没有context参数
+// _.uniq([1, 2, 1, 4, 1, 3]);
+// => [1, 2, 4, 3]
+_.uniq = _.unique = function(array, isSorted, iteratee, context){
+  if(!_.isBoolean(isSorted)){
+    context = iteratee;
+    itaratee = isSorted;
+    isSorted = false;
+  }
+  if(iteratee != null){
+    iteratee = cb(iteratee, context);
+  }
+
+  var result = [];
+  var seen = [];//数组形式的seen用来保存迭代过后的值
+
+  for(var i = 0, length = getLength(array); i < length; i++){
+    var value = array[i],
+        computed = iteratee ? iteratee(value, i, array) : value;
+    if(isSorted){
+      // 如果是有序数组，只需让当前元素和上一个数组进行比较，此时seen已不再是一个数组，而直接保存了一个值
+      //下面的!i表示当i === 0的情况下，作为第一个元素直接推入结果数组中
+      if(!i || seen !== computed){
+        result.push(value);
+      }
+      seen = computed;//让seen保存本次值，和下一次值进行比较
+    }else if(iteratee){
+      if(!_.contains(seen, computed)){
+        seen.push(computed);//注意seen保存的是迭代后的值
+        result.push(value);//result保存的是原值
+      }
+    }else if(!_.contains(result, value)){
+      result.push(value);//其实在没有迭代函数的情况下，数组排序与否都可以通过这个算法进行去重，只不过排序会走一个更快的算法
+    }
+  }
+  return result;
+};
+
+// _.union函数 先对数组中的数组展开一层，只保存值，然后去重
+_.union = function(){
+  return _.uniq(flatten(arguments, true, true));
+};
+
+// Tip-_.intersection这个函数中的外部for循环套内部for循环进行条件判断，用continue和break进行
+// 循环控制的方法要注意下
+_.intersection = function(array){
+  var result = [];
+  var argsLength = arguments.length;
+  for(var i = 0, length = getLength(array); i < length; i++){
+    var item = array[i];
+    if(_.contains(result, item)) continue;
+    for(var j = 1; j < argsLength; j++){
+      if(!_.contains(arguments[j], item)){
+        break;//跳出内部的for循环，进去外部的for循环
+      }
+    }
+    if(j === argsLength){
+      result.push(item);
+    }
+  }
+  return result;//结果中元素的顺序是按第一个数组的元素顺序
+};
+
+_.difference = function(array){
+  var rest = flatten(arguments, true, true, 1);//展开一层，不保存类数组型的值
+  return _.filter(array, function(value){
+    return !_.contains(rest, value);
+  });//array中rest中没有的元素组成的数组
+};
+
+// 传入_.zip和_.unzip的参数的不同：传入第一个函数的参数可以是n多个独立的数组，传入第二个函数的参数需要是由多个数组组成的元素的数组
+_.zip = function(){
+  return _.unzip(arguments);
+};
+
+// array参数是一个包含数组的数组
+_.unzip = function(array){
+  var length = array && _.max(array, getLength).length || 0;//取得数组中最长的数组
+  var result = Array(length);
+  for(var index = 0; index < length; index++){
+    result[index] = _.pluck(array, index);//每个数组的相同index组成一个新的数组并推入result中
+  }
+  return result;
+};
+
+// 如果没有values参数
+// list参数是一个数组，其中的元素是包含两个元素的数组
+// 如果有values参数
+// 那么list和values两个数组的元素数目要相同
+_.object = function(list, values){
+  var result = {};
+  for(var i = 0, length = getLength(list); i < length; i++){
+    if(values){
+      result[list[i]] = values[i];
+    }else{
+      result[list[i][0]] = list[i][1];
+    }
+  }
+  return result;
+};
+
+// dir=1，从前往后找
+// dir=-1，从后往前找
+function createPredicateIndexFinder(dir){
+  return function(array, predicate, context){
+    predicate = cb(predicate, context);
+
+    var length = getLength(array);
+    var index = dir > 0 ? 0 : length - 1;
+    for(; index >= 0 && index < length; index +=dir){
+      if(predicate(array[index], index, array)){
+        return index;
+      }
+    }
+    return -1;
+  };
+};
+
+_.findIndex = createPredicateIndexFinder(1);
+
+_.findLastIndex = createPredicateIndexFinder(-1);
+
+// 返回一个value应该排进一个有序数组的index值
+_.sortedIndex = function(array, obj, iteratee, context){
+  iteratee = cb(iteratee, context, 1);
+  var value = iteratee(obj);
+  var low = 0, high = getLength(array);
+
+  while(low < high){
+    var mid = Math.floor((low + high) / 2);
+    if(iteratee(array[mid]) < value){
+      low = mid + 1;
+    }else{
+      high = mid;
+    }
+  }
+  return low;
+};
+
+
+// 后面将要定义的函数
+// _.indexOf = createIndexFinder(1, _.findIndex, _.sortedIndex);
+// _.lastIndexOf = createIndexFinder(-1, _.findLastIndex);
+function createIndexFinder(dir, predicateFind, sortedIndex){
+  return function(array, item, idx){
+    var i = 0, length = getLength(array);
+    // 如果idx是数字，规定数组不是有序排序，不能使用二分法，此处进行的设置是设定查询的起始点
+    if(typeof idx == 'number'){
+      if(dir > 0){
+        i = idx >= 0 ? idx : Math.max(idx +length, i);
+      }else{
+        length = idx >= 0? Math.min(idx + 1, length) : idx + length + 1;
+      }
+      // 如果idx不是数字，说明是顺序排序的数组，可以用二分法，也就是可以使用sortedIndex函数
+    }else if (sortedIndex && idx &&length){
+      idx = sortedIndex(array, item);
+      return array[idx] === item ? idx : -1;
+    }
+    // 针对NaN的情况单独进行的查找
+    if(item !== item){
+      idx = predicateFind(slice.call(array, i, length), _.isNaN);
+      return idx >= 0? idx + i : -1;
+    }
+    // 排除NaN后针对不能使用二分法的情况使用循环遍历
+    for(idx = dir > 0 ? i : length - 1; idx >= 0 && idx < length; idx += idr){
+      if(array[idx] === item){
+        return idx;
+      }
+    }
+    return -1;
+  };
+}
 
 }.call(this));
