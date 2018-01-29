@@ -28,7 +28,7 @@
   var nativeIsArray = Array.isArray,
       nativeKsys = Object.keys,//Object.keys() 方法会返回一个由一个给定对象的自身可枚举属性组成的数组 
       nativeBind = FuncProto.bind,
-      nativeCreate = object.create;
+      nativeCreate = Object.create;
 
 
   var Ctor = function(){};
@@ -118,6 +118,7 @@
   };
 
   // 创建一个可以指定原型对象的的新对象
+  // 传入的参数是一个原型对象(对象!)
   var baseCreate = function(prototype){
     if(!_.isObject(prototype)) return {};
     // 创建对象的方法1
@@ -743,5 +744,279 @@ function createIndexFinder(dir, predicateFind, sortedIndex){
     return -1;
   };
 }
+
+// 调用方式: _.indexOf(array, value, [isSorted]);
+// 找到数组array中value第一次出现的位置,返回其下下标
+// 其中isSorted是布尔值(感觉其实不是数字类型的能转换为true的任意类型都可以)时,也就是事先明确知道数组时有序的
+// isSorted是数值时,走的是遍历算法,不会使用_.sortedIndex函数
+_.indexOf = createIndexFinder(1, _.findIndex, _.sortedIndex);
+
+// 倒序查找
+// 调用方式:_.lastIndexOf(array, value, [fromIndex]);
+// 其中[fromIndex]参数表示从倒数第几个开始往前找
+// 不可用二分法查找,即便传入有序数组,也使用的是遍历算法
+_.lastIndexOf = createIndexFinder(-1, _.findLastIndex);
+
+// 返回某个范围,某个步长下的顺序整数组成的数组
+_.range = function(start, stop, step){
+  if(stop == null){
+    stop = start || 0;
+    start = 0;
+  }
+  step = step || 1;
+
+  var length = Math.max(Math.ceil((stop - start) / step), 0); //Math.ceil()返回舍入的整数
+
+  var range = Array(length);
+
+  for(var idx = 0; idx < length; idx++, start += step){
+    range[idx] = start;
+  }
+  return range;
+
+};
+
+/*+++++++++++++++++++++++++++++++++++以下为函数的扩展方法++++++++++++++++++++++++++++++++++*/ 
+
+// new操作符创建对象可以分为四个步骤:
+// 1.创建一个空对象
+// 2.将所创建对象的__proto__属性值设成构造函数的Prototype属性值
+// 3.执行构造函数中的代码,构造函数中的this指向该对象
+// 4.返回该对象(除非构造函数中返回一个对象)
+// 详细参考: http://www.cnblogs.com/zichi/p/4392944.html
+var executeBound = function(sourceFunc, boundFunc, context, callingContext, args){
+  // 作为普通函数调用执行if条件中的代码
+  if(!(callingContext instanceof boundFunc)){
+    return sourceFunc.apply(context, args);
+  }
+
+  // new调用绑定后的函数执行下述代码
+  // self是sourceFunc的实例,继承了它的原型链
+  // baseCreat内部是采用new关键字创建的对象
+  var self = baseCreate(sourceFunc.prototype);
+
+  // 构造函数的返回值
+  // 如果sourceFunc没有返回值则result为undefined
+  var result = sourceFunc.apply(self, args);
+
+  if(_.isObject(result)) return result;
+
+  return self;
+};
+
+
+// 原生bind函数(https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Function/bind)
+
+// 下面是关于一个bind的简单模拟
+// 其中在bind中使用that保存this来传递this指向
+// bind方法是定义在Function.prototype上的
+// 而getCount实际就是Function的实例
+// 所以that保存的实际是obj.getCount
+// var obj = {
+//   a: 1,
+//   b: 2,
+//   getCount: function(c, d) {
+//     return this.a + this.b + c + d;
+//   }
+// };
+ 
+// Function.prototype.bind = Function.prototype.bind || function(context) {
+//   var that = this;
+//   return function() {
+//     // console.log(arguments); // console [3,4] if ie<6-8>
+//     return that.apply(context, arguments);
+ 
+//   }
+// }
+// window.a = window.b = 0;
+// var func = obj.getCount.bind(obj);
+// console.log(func(3, 4));  // 10
+
+
+// _.bind(function, object, *arguments)
+// 将func中的this指向context对象
+// *arguments会被当做function的参数传入
+
+// 使用方法:
+// var func = function(greeting){ return greeting + ': ' + this.name };
+// func = _.bind(func, {name: 'moe'}, 'hi');
+// func();
+// => 'hi: moe'
+
+
+_.bind = function(func, context){
+  // 这个判断的意思是如果浏览器支持原生bind方法,且func上的bind方法没有被重写
+  // 使用原生bind不用考虑func是否是函数的问题
+  if(nativeBind && func.bind === nativeBind){
+    return nativeBind.apply(func, slice.call(arguments, 1));
+  }
+
+  if(!_.isFunction(func)){
+    throw new TypeError('Bind must be called on a function');
+  }
+
+  var args = slice.call(arguments, 2);//将arguments中从index=2开始到后续的元素转成数组
+
+  // _.bind返回一个函数!!!
+  // 这个函数可以继续接收参数,也就是这个地方args.concat(slice.call(arguments))
+  // 不太理解这里的this和bound
+  // 明白了!返回的这个函数如果用new来调用,
+  // 这个函数就是个构造函数
+  // this指向的当然是新创建的这个对象
+  // 既然这个对象是由这个构造函数创建的
+  // 当然使用(callingContext instanceof boundFunc)进行判断返回的是true
+  // 而规范中规定当用new 调用绑定后的函数时,bind的第一个参数会失效
+  // 还要对this多了解下,迷糊!
+  
+  // 此处为了能使用bound而使用了函数定义形式
+  var bound = function(){
+    return executeBound(func, bound, context, this, args.concat(slice.call(arguments)));
+  };
+
+  // 这是个闭包啊!!!
+  return bound;
+};
+
+
+
+// 使用1
+// var subtract = function(a, b) { return b - a; };
+// sub5 = _.partial(subtract, 5);
+// sub5(20);
+// => 15
+// 使用2:placeholder
+// subFrom20 = _.partial(subtract, _, 20);
+// subFrom20(5);
+// => 15
+
+// _.partial函数的返回值是一个函数
+// 任何类型都可以传入这个函数作为参数
+// 这些参数将成为func的参数
+_.partial = function(func){
+  var boundArgs = slice.call(arguments, 1);
+
+  // bound是个闭包
+  var bound = function(){
+    var position = 0, length = boundArgs.length;
+    var args = Array(length);
+    for(var i = 0; i < length; i++){
+      // 如果在_.partial()中传入了_,则使用返回函数中的参数进行填补
+      args[i] = boundArgs[i] === _ ? arguments[position++] : boundArgs[i];
+    }
+    while(position < arguments.length){
+      args.push(arguments[position++]);
+    }
+    // 执行的是executeBound中的这部分代码:
+    // if(!(callingContext instanceof boundFunc)){
+    //   return sourceFunc.apply(context, args);
+    // }
+    // 同样传递了this指向
+    return executeBound(func, bound, this, this, args);
+  };
+  return bound;
+};
+
+
+// 调用方法
+// var buttonView = {
+//   label  : 'underscore',
+//   onClick: function(){ alert('clicked: ' + this.label); },
+//   onHover: function(){ console.log('hovering: ' + this.label); }
+// };
+// _.bindAll(buttonView, 'onClick', 'onHover');
+// When the button is clicked, this.label will have the correct value.
+// jQuery('#underscore_button').on('click', buttonView.onClick);
+
+
+_.bindAll = function(obj){
+  var i, length = arguments.length, key;
+  if(length <= 1){
+    throw new encodeURIComponent('bindAll must be passed function names');
+  }
+  for(i = 1; i < length; i++){
+    key = arguments[i];
+    obj[key] = _.bind(obj[key], obj);
+  }
+  return obj;
+};
+
+
+// 参数func,hasher都是函数
+// 如果传入hasher,则用hasher来计算key值,否则直接使用key值
+// 适合需要反复求解的情况
+// 使用方法:
+// var fibonacci = _.memoize(function(n) {
+//   return n < 2 ? n: fibonacci(n - 1) + fibonacci(n - 2);
+// });
+
+
+_.memoize = function(func, hasher){
+
+  //此处为了使用memoize的属性cache而使用了函数定义形式
+  // 而不是直接返回一个匿名函数
+  // 真是灵活的用法
+  var memoize = function(key){
+    var cache = memoize.cache;
+    var address = '' + (hasher ? hasher.apply(this, aguments) : key);
+
+    // _.has(object, key);
+    // 返回一个布尔值
+
+    if(!_.has(cache, address)){
+      cache[address] = func.apply(this, arguments);
+    }
+    return cache[address];
+  };
+
+  //此处没有使用一个独立的对象来保存计算结果
+  memoize.cache = {};
+  return memoize;
+};
+
+// 封装延迟触发某时间
+_.delay = function(func, wait){
+  var args = slice.call(arguments, 2);
+  return setTimeout(function(){
+    // 需要看一下apply的实现,对于args为空时的处理是如何的
+    return func.apply(null, args);
+  }, wait);
+};
+
+
+//_.partial使得方法可以方法能够设置默认值
+// wait参数设置为 1
+// 感觉这个函数似乎没什么大用处啊...
+_.defer = _.partial(_.delay, _, 1);
+
+
+// throttle:节流
+_.throttle = function(func, wait, options){
+  var context, args, result;
+  var timeout = null;
+  var previous = 0;
+  if(!options){
+    opstions = {};
+  }
+  var later = function(){
+    previous = 
+  };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }.call(this));
