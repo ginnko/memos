@@ -990,6 +990,30 @@ _.defer = _.partial(_.delay, _, 1);
 
 
 // throttle:节流
+// 函数的节流使得连续的函数执行,变为固定时间段间断地执行
+
+
+// 返回一个传入函数func的throttle版本
+// options:
+// 1.不填-正常执行
+// 2.{leading: false}-传入的func不会立即触发,要等待一个wait才第一次触发
+// 3.{trailing: false}-最后一次回调不会触发
+
+// 调用方法:
+// var throttled = _.throttle(updatePosition, 100);
+// $(window).scroll(throttled);
+
+// 实现方式1:
+// 用时间戳来判断是否已经到回调该执行的事件,记录上次执行的时间戳,然后每次触发scroll事件执行回调,
+// 回调中判断当前时间戳距离上次执行时间戳的间隔是否已经达到设置的时间,如果是,则执行,并更新上次执行
+// 的时间戳,如此循环.
+
+// 实现方式2:
+// 使用定时器,比如当scroll事件刚触发时,打印一个hello world,然后设置个1000ms的定时器,以后每次
+// 触发scroll事件触发回调,如果已经存在定时器,则回调不执行方法,直到定时器触发,handler被清除,然后
+// 重新设置定时器.
+
+
 _.throttle = function(func, wait, options){
   var context, args, result;
   var timeout = null;
@@ -997,16 +1021,23 @@ _.throttle = function(func, wait, options){
   if(!options){
     opstions = {};
   }
+
+  // later是实现方式2中定时器的回调函数
   var later = function(){
+    // Q-感觉previous可以直接设置为_.now()的返回值,不需要此处的判断..何处会用到这个判断?
+    // 此处设置的是上一次实际的执行时间
     previous = opstions.leading === false ? 0: _.now();
     timeout = null;
     result = func.apply(context, args);
     if(!timeout){
+      // 此处的context = args = null防止内存泄露?
       context = args = null;
     }
   };
   return function(){
+    // 此处设置的是新一次开始的时间
     var now = _.now();
+    // Q-感觉此处不需要!previous的判断...什么情况会用到这个判断?
     if(!previous && options.leading === false){
       previous = now;
     }
@@ -1014,37 +1045,178 @@ _.throttle = function(func, wait, options){
     context = this;
     args = arguments;
 
+    //如果设置{leading: false}则只会执行B部分,也就是使用定时器来实现节流的效果
+    //如果设置{trailing: false}则只会执行A部分,也就是使用时间戳来实现节流的效果
+    //如果没有设置这个位置的参数,则A部分会执行一次,后续由B部分执行(比如鼠标的连续移动,如果中间停顿大于wait,则又是1次A,后续都是B)
+/*=============================A==============================*/ 
     if(remaining <= 0 || remaining > wait){
+      // 感觉紧下面这段if代码没什么用啊...这个涉及到队列执行顺序?
+      // 只要执行B,timeout就会被重置为null,如果不执行B,timeout一开始就是null,也会一直保存的,这是用在什么情况下?
+      // 发生的情况:上次B回调还未执行&&本次再次触发事件&&本次remaining<=0?
       if(timeout){
         clearTimeout(timeout);
         timeout = null;
       }
+      // 此处设置本次执行的事件戳
       previous = now;
       result = func.apply(context, args);
 
+      // 此处设置context = args = null是为了防止内存泄露,使用闭包时要特别注意这个!
       if(!timeout){
-        result = func.apply(context, args);
+        context = args = null;
       }
+/*============================================================*/ 
+/*============================B================================*/ 
     }else if(!timeout && options.trailing !== false){
       timeout = setTimeout(later, remaining);
     }
+/*============================================================*/ 
     return result;
   };
 };
 
 
 
+// 函数去抖:连续事件触发结束后只触发一次
+// 调用方式1:
+// _.debounce(function(){}, 1000)
+// 连续事件结束后的1000ms后触发
+
+// 调用方式2:
+// _.debounce(function(){}, 1000, true)
+// 连续时间出发后立即触发(此时会忽略第二个参数)
+_.debounce = function(func, wait, immediate){
+  var timeout, args, context, timestamp, result;
+  var later = function(){
+    var last = _.now() - timestamp;
+    // 如果没有到触发点则继续设置定时器
+    // 这样连续设定定时器,不会都注册在队列里么
+    if(last < wait && last >= 0){
+      timeout = setTimeout(later, wait - last);
+    }else{
+      timeout = null;
+      if(!immediate){
+        result = func.apply(context, args);
+        if(!timeout){
+          context = args = null;
+        }
+      }
+    }
+  };
+  return function(){
+    context = this;
+    args = arguments;
+    timestamp = _.now();
+    var callNow = immediate && !timeout;
+    if(!timeout){
+      timeout = setTimeout(later, wait);
+    }
+    if(callNow){
+      result = func.apply(context, args);
+      context = args = null;
+    }
+    return result;
+  };
+};
+
+// throttle 和 debounce 的应用场景应该是分的很清楚的
+
+// 按一个按钮发送 AJAX：给 click 加了 debounce 后就算用户不停地点这个按钮，也只会最终发送一次；如果是 throttle 就会间隔发送几次
+// 监听滚动事件判断是否到页面底部自动加载更多：给 scroll 加了 debounce 后，只有用户停止滚动后，才会判断是否到了页面底部；如果是 throttle 的话，只要页面滚动就会间隔一段时间判断一次
+// throttle 和 debounce 是解决请求和响应速度不匹配问题的两个方案。二者的差异在于选择不同的策略。
 
 
 
 
+// 关于partial的使用
 
+// 使用1
+// var subtract = function(a, b) { return b - a; };
+// sub5 = _.partial(subtract, 5);
+// sub5(20);
+// => 15
 
+// 使用2:placeholder
+// subFrom20 = _.partial(subtract, _, 20);
+// subFrom20(5);
+// => 15
 
+// _.wrap的使用
+// var hello = function(name) { return "hello: " + name; };
+// hello = _.wrap(hello, function(func) {
+//   return "before, " + func("moe") + ", after";
+// });
+// hello();
+// => 'before, hello: moe, after'
+// 用途:可以用来设置代码在某一部分代码前面运行还是在后面运行
 
+_.wrap = function(func, wrapper){
+  return _.partial(wrapper, func);
+};
 
+// 返回一个predicate方法的对立方法
+// 该方法可以对原来的predicate的迭代结果值取补集
+// 参数predicate是个函数
+_.negate = function(predicate){
+  return function(){
+    return !predicate.apply(this, arguments);
+  };
+};
 
+// 调用方式
+// var greet    = function(name){ return "hi: " + name; };
+// var exclaim  = function(statement){ return statement.toUpperCase() + "!"; };
+// var welcome = _.compose(greet, exclaim);
+// welcome('moe');
+// => 'hi: MOE!'
 
+// 过程分析
+// args[start].apply(this, arguments);中args[start]指代的函数是exclaim,arguments是['moe']
+// 然后执行while循环,只执行一次
+// result = args[0].call(this, result);
+// 'hi: MOE!' = greet.call(this, 'MEO');
+
+// 传入的函数都需要是有明确返回值的
+_.compose = function(){
+  var args = arguments;
+  var start = args.length - 1;
+  return function(){
+    var i = start;
+    var result = args[start].apply(this, arguments);
+    // 此处while循环使用了隐式转换
+    while(i--){
+      result = args[i].call(this, result);
+    }
+    return result;
+  };
+};
+
+// 从第times触发之后开始执行
+_.after = function(times, func){
+  return function(){
+    if(--times < 1){
+      return func.apply(this, arguments);
+    }
+  };
+};
+
+// 前times-1次是将参数带入重新计算的
+// 从第times次开始始终返回第times-1次的值
+_.before = function(times, func){
+  var memo;
+  return function(){
+    if(--times > 0){
+      memo = func.apply(this, arguments);
+    }
+    if(times <= 1){
+      func = null;
+    }
+    return memo;
+  };
+};
+
+// 函数最多只能被调用一次
+_.once = _partial(_.before, 2);
 
 
 
