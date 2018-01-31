@@ -1221,7 +1221,7 @@ _.once = _partial(_.before, 2);
 
 /*+++++++++++++++++++++++++++++++++++以下为函数的扩展方法++++++++++++++++++++++++++++++++++*/ 
 
-// ie<9下不能用for key in 来枚举对象的某些key
+// ie<9下不能用for key in 来枚举对象的某些key！！！
 // 下面这个表示
 // 重写了对象的toString方法,这个key值就不能在ie<9下用for in枚举到
 // 据此可以判断是否在ie < 9浏览器环境中
@@ -1255,10 +1255,58 @@ function collectNonEnumProps(obj, keys){
 
 };
 
+// 仅返回对象本身的可枚举属性组成的数组
 
+_.keys = function(obj){
+  if(!_.isObject(obj)){
+    return [];
+  }
+// Object.keys()
+// 返回一个所有元素为字符串的数组，其元素来自于从给定的对象上面可直接枚举的属性
+// Objext.keys()仅返回对象本身的可枚举属性
 
+if(nativeKeys){
+    return nativeKeys(obj);
+  }
 
+  var keys = [];
 
+  // 对象本身的可枚举属性
+  for(var key in obj){
+    // _.has()函数有猫腻，嘿嘿
+    if(_.has(obj, key)){
+      keys.push(key);
+    }
+  }
+
+  // 针对ie<9的情况
+  if(hasEnumBug){
+    collectNonEnumProps(obj, keys);
+  } 
+
+  return keys;
+
+};
+
+// 不仅是本身的可枚举属性
+// 还包括原型链上继承的属性
+_.allkeys = function(obj){
+  if(!_.isObject(obj)){
+    return [];
+  }
+
+  var keys = [];
+  for(var key in obj){
+    keys.push(key);
+  }
+
+  if(hasEnumBug){
+    collectNonEnumProps(obj, keys);
+  }
+
+  return keys;
+
+};
 
 
 
