@@ -784,7 +784,7 @@ _.range = function(start, stop, step){
 // 3.执行构造函数中的代码,构造函数中的this指向该对象
 // 4.返回该对象(除非构造函数中返回一个对象)
 // 详细参考: http://www.cnblogs.com/zichi/p/4392944.html
-var executeBound = function(sourceFunc, boundFunc, context, callingContext, args){
+var c = function(sourceFunc, boundFunc, context, callingContext, args){
   // 作为普通函数调用执行if条件中的代码
   if(!(callingContext instanceof boundFunc)){
     return sourceFunc.apply(context, args);
@@ -1217,6 +1217,71 @@ _.before = function(times, func){
 
 // 函数最多只能被调用一次
 _.once = _partial(_.before, 2);
+
+
+/*+++++++++++++++++++++++++++++++++++以下为函数的扩展方法++++++++++++++++++++++++++++++++++*/ 
+
+// ie<9下不能用for key in 来枚举对象的某些key
+// 下面这个表示
+// 重写了对象的toString方法,这个key值就不能在ie<9下用for in枚举到
+// 据此可以判断是否在ie < 9浏览器环境中
+
+var hasEnumBug = !{toString: null}.propertyIsEnumerable('toString');
+
+// ie<9下不能用for in来枚举的key值集合
+var nonEnumerableProps = ['valueOf', 'isPrototypeOf', 'toString', 
+                          'propertyIsEnumerable', 'hasOwnProperty',
+                           'toLocaleString'];
+
+function collectNonEnumProps(obj, keys){
+  var nonEnumIdx = nonEnumerableProps.length;
+  // 单独写constructor,其他的nonEnumerableProps都是方法,constructor表示对象的构造函数
+  var constructor = obj.constructor;
+  // Q-此处有疑问啊,isFunction都做了那些检查?待查.
+  var proto = (_.isFunction(constructor) && constructor.prototype) || ObjProto;
+
+  var prop = 'constructor';
+  if(_.has(obj, prop) && !_.contains(keys, prop)){
+    keys.push(prop);
+  }
+
+  while(nonEnumIdx--){
+    prop = nonEnumerableProps[nonEnumIdx];
+    // 收集重写了原型链上的属性
+    if(prop in obj && obj[prop] !== proto[prop] && !_.contains(keys, prop)){
+      keys.push(prop);
+    }
+  }
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
