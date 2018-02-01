@@ -1271,9 +1271,11 @@ if(nativeKeys){
 
   var keys = [];
 
-  // 对象本身的可枚举属性
+  // in操作符返回对象本身和原型链上的属性
+
   for(var key in obj){
     // _.has()函数有猫腻，嘿嘿
+    // 感觉去除原型链上的属性就在这个_.has()属性上
     if(_.has(obj, key)){
       keys.push(key);
     }
@@ -1383,12 +1385,26 @@ _.functions = _.methods = function(obj){
   return names.sort();
 };
 
-
+// 后面对象的所有键值对（本身以及原型链上的）添加到第一个对象上
+// 出现相同key值，后面的可以覆盖前面的
 _.extend = createAssigner(_.allKeys);
 
+// 后面对象的本身的键值对添加到第一个对象上
+// 出现相同key值，后面的可以覆盖前面的
+_.extendOwn = _.assign = createAssigner(_.keys);
 
-
-
+// 找到对象的键值对中第一个满足条件的键值对
+// 对应数组方法_.findIndex
+_.findKey = function(obj, predicate, context){
+  predicate = cb(predicate, context);
+  var keys = _.keys(obj), key;
+  for(var i = 0, length = keys.length; i < length; i++){
+    key = keys[i];
+    if(predicate(obj[key], key, obj)){
+      return key;
+    }
+  }
+};
 
 
 
