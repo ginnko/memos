@@ -1308,17 +1308,83 @@ _.allkeys = function(obj){
 
 };
 
+// 将一个对象上的所有value值放入一个数组并返回
+// 仅限对象本身的可枚举属性
+// 不包含原型链上的
+_.values = function(obj){
+  var keys = _.keys(obj);
+  var length = keys.length;
+  //Q-js中的数组数量不是能动态改变的么,为毛这个库里的Array很多地方都主动设置大小
+  var values = Array(length);
+  for(var i = 0; i < length; i++){
+    values[i] = obj[keys[i]];
+  }
+  return values
+};
+
+// 专门针对对象的map版本?
+// 上面的_.map()已经能做到同时处理数组和对象了吧
+// 为何此处要单独再写一个对象版本?
+// 返回一个传入对象运算后的值组成的对象,原对象不受影响
+
+_.mapObject = function(obj, iteratee, context){
+  iteratee = cb(iteratee, context);
+  var keys = _.keys(obj),//此处获取的不包含原型链上的属性
+      length = keys.length,
+      results = {},
+      currentKey;
+  
+  for(var index = 0; index < length; index--){
+    currentKey = keys[index];
+    results[currentKey] = iteratee(obj[currentKey], currentKey, obj);
+  }
+  return results;;
+};
+
+  // _.pairs({one: 1, two: 2, three: 3});
+  // => [["one", 1], ["two", 2], ["three", 3]]
+_.pairs = function(obj){
+  var keys = _.keys(obj);
+  var length = keys.length;
+  var pairs = Array(length);//此处又是手动设置了结果数组的大小
+  for(var i = 0; i < length; i++){
+    pairs[i] = [keys[i], obj[keys[i]]];//我自己写代码好像很少用到数组的这种书写形式
+  }
+  return pairs;
+};
+
+// 将一个对象的属性和属性值对调,并返回一个新的对象,原对象没有影响
+_.invert = function(obj){
+  var result = {};
+  var keys = _.keys(obj);
+  for(var i = 0, length = keys.length; i < length; i++){
+    result[obj[keys[i]]] = keys[i];
+  }
+  return result;
+};
+
+// 求豆麻袋!
+// in 可以求得对象本身以及原型链上的属性?
+// 这和上面的说法矛盾啊!!!
+// 返回排序后的函数组成的数组
+_.functions = _.methods = function(obj){
+  var names = [];
+  // 和上面比较
+  // 放弃了对ie<9的支持
+  for(var key in obj){
+    if(_.isFunction(obj[key])){
+      names.push(key);
+    }
+  }
+  // 返回排序后的数组
+  // 这个是按字母顺序排?
+  // 默认排序顺序是根据字符串Unicode码点。
+
+  return names.sort();
+};
 
 
-
-
-
-
-
-
-
-
-
+_.extend = createAssigner(_.allKeys);
 
 
 
