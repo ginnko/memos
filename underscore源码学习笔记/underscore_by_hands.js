@@ -1406,7 +1406,49 @@ _.findKey = function(obj, predicate, context){
   }
 };
 
+// 使用方法1:
+// 需求可以是值,比如这里的'name', 'age'
+// _.pick({name: 'moe', age: 50, userid: 'moe1'}, 'name', 'age');
+// => {name: 'moe', age: 50}
 
+// 使用方法2;
+// 也可以是筛选函数,比如这里的
+// function(value, key, object) {
+//   return _.isNumber(value);
+// }
+
+// _.pick({name: 'moe', age: 50, userid: 'moe1'}, function(value, key, object) {
+//   return _.isNumber(value);
+// });
+// => {age: 50}
+
+
+_.pick = function(object, oiteratee, context){
+  var result = {}, obj = object, iteratee, keys;
+
+  if(obj == null){
+    return result;
+  }
+  // 下面这个if else 是对keys和iteratee的处理
+  if(_.isFunction(oiteratee)){
+    keys = _.allKeys(obj);
+    iteratee = optimizeCb(oiteratee, context);
+  }else{
+    // 这样写不就把object也一起包含进来了么?
+    keys = flatten(arguments, false, false, 1);
+    iteratee = function(value, key, obj){ return key in obj;};
+    obj = Object(obj);
+  }
+
+  for(var i = 0, length = keys.length; i < length; i++){
+    var key = keys[i];
+    var value = obj[key];
+    if(iteratee(value, key, obj)){
+      result[key] = value;
+    }
+  }
+  return result;
+};
 
 
 
