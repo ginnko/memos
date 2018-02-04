@@ -16,7 +16,7 @@
 
 
   var root = this;
-  var preiousUnderscore = root._;
+  var previousUnderscore = root._;
 
   // 一些简写
   var ArrayProto = Array.prototype, ObjProto = object.prototype, FuncProto = Function.prototype;
@@ -1425,18 +1425,22 @@ _.findKey = function(obj, predicate, context){
 
 _.pick = function(object, oiteratee, context){
   var result = {}, obj = object, iteratee, keys;
-
+  // 此处用了可转换类型的比较形式
+  // 对于undefined、null可以直接处理
   if(obj == null){
     return result;
   }
   // 下面这个if else 是对keys和iteratee的处理
   if(_.isFunction(oiteratee)){
+    // _.allKeys()自带对象容错机制用于处理其他非标准对象的情况
     keys = _.allKeys(obj);
     iteratee = optimizeCb(oiteratee, context);
   }else{
     // 这样写不就把object也一起包含进来了么?
+    // flatten是展开数组的函数，对象不会被展开
     keys = flatten(arguments, false, false, 1);
     iteratee = function(value, key, obj){ return key in obj;};
+    // 手动处理非标准对象的情况
     obj = Object(obj);
   }
 
@@ -1450,6 +1454,375 @@ _.pick = function(object, oiteratee, context){
   return result;
 };
 
+
+// 返回不包含key值的对象的副本
+//_.pick()的补集函数
+_.omit = function(obj, iteratee, context){
+  if(_.isFunction(iteratee)){
+    iteratee = _.megate(iteratee);
+  }else{
+    // 此处传入了一个String构造函数？
+    // 将数组的每个元素字符串化？
+    // 使用String转换对象的结果是："[object Object]"！！！
+    var keys = _.map(flatten(arguments, false, false, 1), String);
+    iteratee = function(value, key){
+      return !_.contains(keys, key);
+    };
+  }
+  return _.pick(obj, iteratee, context);
+};
+
+// createAssigner的作用
+// 返回一个函数
+// 用来扩充对象的属性
+// 如果某个属性已经存在，不会覆盖
+// 属性包括对象本身的可枚举属性以及原型链上的可枚举属性
+_.defaults = createAssigner(_.allKeys, true);
+
+// 基于传入的原型，构造并返回一个新的对象
+// 如果传入的参数中带有属性及属性值的话，扩充进来
+_.create = function(prototype, props){
+  var result = baseCreate(prototype);
+
+  if(props){
+    // 此处使用的是可以覆盖已有属性的扩充方法
+    _.extendOwn(result, props);
+  }
+  return result;
+};
+
+
+//_.isObject = function(obj) {
+//   var type = typeof obj;
+//   return type === 'function' || type === 'object' && !!obj;
+// };
+// &&的优先级高于||
+// 返回一个obj对象的复制对象，它们引用不同的地址，但是obj对象中的属性如果
+// 是一个对象或数组之类的引用类型，它们引用的是相同的地址
+_.clone = function(obj){
+  if(!_.isObject(obj)){
+    return obj;
+  }
+  return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
+};
+
+// 链式调用？
+// _.chain([1,2,3,200])
+//   .filter(function(num) { return num % 2 == 0; })
+//   .tap(alert)
+//   .map(function(num) { return num * num })
+//   .value();
+// => // [2, 200] (alerted)
+// => [4, 40000]
+// 写了这么多 怎么没有发现任何可以用来进行链式调用的蛛丝马迹？！
+// 咋回事？!
+
+// 立即返回结果
+_.tab = function(obj, interceptor){
+  interceptor(obj);
+  return obj;
+}
+
+_.isMatch = function(object, attrs){
+  var keys = _.keys(attrs), length = keys.length;
+
+  // 如果object为空
+  // 则根据attrs的键值对数量返回布尔值
+  if(object == null){
+    return !length;
+  }
+  // 为何要写这行代码？
+  var obj = Object(object);
+
+  // 如果obj对象没有attrs对象的某个key
+  // 或者对于某个key，它们的value值不同
+  // 则证明object不拥有attrs的所有键值对
+  // 如此，返回false
+  for(var i = 0; i < length; i++){
+    var key = keys[i];
+    if(attrs[key] !== obj[key] || !(key in obj)){
+      return false;
+    }
+  }
+  return false;
+};
+
+// 这个函数全部是显示进行类型转换
+var eq = function(a, b, aStack, bStack){
+  // 用来区分0和-0
+  // 0 === -0 => true
+  // 1/0 = Infinity
+  // 1/-0 = -Infinity
+  // 1/0 === 1/-0 => false
+  if(a === b){
+    return a !== 0 || 1 / a === 1 / b;
+  }
+  if(a == null || b == null){
+    return a === b;
+  }
+
+  if(a instanceof _){
+    a = a._wrapped;
+  }
+  if(b instanceof _){
+    b = b._wrapped;
+  }
+  // 用Objec.prototype.toString.call方法获取a变量的类型
+  // 先比较类型再比较值
+  /*================这个判断很厉害么==================*/ 
+  var className = toString.call(a);
+  if(className !== toString.call(b)){
+    return false;
+  }
+  /*==================================*/ 
+  switch(className){
+    case '[object RegExp]':
+    case '[object String]':
+      return '' + a === '' + b;
+    case '[object Numer]':
+      if(+a !== +a){
+        return +b !== +b;
+      }
+      return +a === 0 ? 1 / +a === 1 /  b : +a === +b;
+    case '[object Date]':
+    case '[object Boolean]':
+      return +a === +b;
+  };
+
+  // 判断a是否是数组
+  var areArrays = className === '[object Array]';
+
+  if(!areArrays){
+    if(typeof a != 'object' || typeof b != 'object'){
+      return false;
+    }
+    // 保证到此处，a和b都是对象
+    var aCtor = a.constructor, bCtor = b.constructor;
+    // 对下面这个if条件判断不理解啊
+    // 首先，第一个aCtor !== bCtor
+    // 构造函数不相等，不一定对应的对象就不等，比如在不同的框架中
+    // 所以补充了后面的判断
+    // 然而完全不明白这是在判断个啥
+    if(aCtor !== bCtor && !(_.isFunction(aCtor) && 
+    aCotr instanceof aCotr && _.isFunction(bCtor) 
+    && bCtor instanceof bCtor) && ('constructor' 
+    in a && 'constructor' in b)){
+      return false;
+    }
+  }
+
+  aStack = aStack || [];
+  bStack = bStack || [];
+
+  var length = aStack.length;
+
+  while(length--){
+    if(aStack[length] === a){
+      return bStack[length] === b;
+    }
+  }
+
+  aStack.push(a);
+  bStack.push(b);
+
+  if(areArrays){
+    length = a.length;
+    if(length !== b.length){
+      return false;
+    }
+    while(length--){
+      if(!eq(a[length], b[length], aStack, bStack)){
+        return false;
+      }
+    }
+  }else{
+    var keys = _.keys(a), key;
+    length = keys.length;
+    if(_.keys(b).length !== length){
+      return false;
+    }
+    while(length--){
+      key = keys[length];
+      if(!(_.has(b, key) && eq(a[key], b[key], aStack, bStack))){
+        return false;
+      }
+    }
+  }
+  aStack.pop();
+  bStack.pop();
+
+  return true;
+
+};
+
+_.isEqual = function(a, b){
+  return eq(a, b);
+};
+
+// 判断传入的数组、字符串或是对象 是否是{}、[]、""、null、undefined
+// 一个空对象没有可枚举的本地属性
+_.isEmpty = function(obj){
+  if(obj == null){
+    return true;
+  }
+
+  // if条件的后半部分是为了排除{length: 10}这样的类数组的判断bug，它可以作为普通对象进行判断
+  if(isArrayLike(obj) && (_.isArray(obj) || _.isString(obj) || _.isArguments(obj))){
+    return obj.length === 0;
+  }
+  return _.keys(obj).length === 0;
+};
+
+// 判断是否是dom元素
+_.isElement = function(obj){
+  return !!(obj && obj.nodeType === 1);
+};
+
+// 判断是否是数组
+_.isArray = function(obj){
+  return toString.call(obj) === '[object Array]';
+};
+
+_.isObject = function(obj){
+  var type = typeof obj;
+  // 显示转换!!obj
+  return type === 'function' || type === 'object' && !!obj;
+};
+
+// 注意！！！判断对象和判断其他类型使用的算法是不一样的！！！
+_.each(['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp', 'Error'], function(name){
+  // 注意这里这个_[]的用法！！！
+  _['is' + name] = function(obj){
+    return toString.call(obj) === '[object ' + name + ']';
+  };
+});
+
+// 针对ie<9, 使用callee属性作兼容
+// ie<9 使用Object.prototype.toString.call返回[object Arguments]
+if(!_.isArguments(arguments)){
+  _.isArguments = function(obj){
+    return _.has(obj, 'callee');
+  };
+}
+
+// 不懂这个if条件啊
+if(typeof /./ != 'function' && typeof Int8Array != 'object'){
+  _.isFunction = function(obj){
+    return typeof obj == 'function' || false;
+  };
+}
+
+// isFinite和isNaN都是内置函数
+// 这里为何要做这个判断 !isNaN(parseFloat(obj)
+_.isFinite = function(obj){
+  return isFinite(obj) && !isNaN(parseFloat(obj));
+};
+
+// _.isNaN(NaN);
+// => true
+// isNaN(undefined);
+// => true
+// _.isNaN(undefined);
+// => false
+// 感觉这个函数起不到上面的作用
+_.isNaN = function(obj){
+  return _.isNumber(obj) && obj !== +obj;
+};
+
+_.isBoolean = function(obj){
+  return obj === true || obj === false || toString.call(obj) === '[object Boolean]';
+};
+
+_.isNull = function(obj){
+  return obj === null;
+};
+
+_.isUndefined = function(obj){
+  return obj === void 0;
+};
+
+_.has = function(obj, key){
+  return obj != null && hasOwnProperty.call(obj, key);
+};
+
+/*+++++++++++++++++++++++++++++++++++以下为工具++++++++++++++++++++++++++++++++++*/ 
+
+// 天哪！！！不明白这个啊！！！
+_.noConflict = function(){
+  root._ = previousUnderscore;
+  return this;
+};
+
+_.identity = function(value){
+  return value;
+};
+
+// var stooge = {name: 'moe'};
+// stooge === _.constant(stooge)();
+// => true
+// 握草！这个干嘛使？！
+_.constant = function(value){
+  return function(){
+    return value;
+  };
+};
+
+_.noop = function(){};
+
+// var property = function(key){
+//   return function(obj){
+//     return obj == null ? void 0 : obj[key];
+//   };
+// };
+
+_.property = property;
+
+_.propertyOf = function(obj){
+  return obj == null ? function(){} : function(key){
+    return obj[key];
+  };
+};
+
+// 判定一个给定的对象是否有某些键值对
+_.matcher = _.matches = function(attrs){
+  attrs = _.extendOwn({}, attrs);
+  return function(obj){
+    return _.isMatch(obj, attrs);
+  };
+};
+
+
+_.times = function(n, iteratee, context){
+  var accum = Array(Math.max(0, n));
+  iteratee = optimizeCb(iteratee, context, 1);
+  for(var i = 0; i < n; i++){
+    accum[i] = iteratee(i);
+  }
+  return accum;
+};
+
+_.random = function(min, max){
+  if(max == null){
+    max = min;
+    min = 0;
+  }
+  return min + Math.floor(Math.random() * (max - min + 1));
+};
+
+_.now = Date.now || function(){
+  return new Date().getTime();
+};
+
+var escapeMap = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#x27',
+  '`': '&#x60'
+};
+
+var unescapeMap = _.invert(escapeMap);
 
 
 
