@@ -1824,6 +1824,58 @@ var escapeMap = {
 
 var unescapeMap = _.invert(escapeMap);
 
+var createEscaper = function(map){
+  // 在下面的replace函数中会用到这个函数, 其中的match参数表示每个完整的匹配项
+  var escaper = function(match){
+    return map[match];
+  };
+
+  // (?:abc) 不捕获组 使得你能够定义为与正则表达式运算符一起使用的子表达式
+  // (?:\d+)匹配一次或多次数字字符，但是不能记住匹配的字符
+  var source = '(?:' + _.keys(map).join('|') + ')';
+
+  var testRegexp = RegExp(source);
+
+  var replaceRegexp = RegExp(source, 'g');
+
+  return function(string){
+    string = string == null ? '' : '' + string;
+    return testRegexp.test(string) ? string.replace(replaceRegexp, escaper) : string;
+  };
+};
+
+// 编码,防止被xss攻击
+_.escape = createEscaper(escapeMap);
+
+// 解码
+_.unescape = createEscaper(unescapeMap);
+
+// 如果对象object的属性property的值是一个函数,那么调用这个函数,并传入object对象
+// 作为调用上下文,否则返回一个值
+// 这个方法有个jj用?
+_.result = function(object, property, fallback){
+  var value = object == null ? void 0 : object[property];
+  if(value === void 0){
+    value = fallback;
+  }
+  return _.isFunction(value) ? value.call(object) : value;
+};
+
+var idCounter = 0;
+_.uniqueId = function(prefix){
+  var id = ++idCounter + '';
+  return prefix ? prefix + id : id;
+};
+
+_.templateSettings = {
+  evaluate: /<%([\s\S]+?)%>/g,
+  interpolate: /<%=([\s\S]+?)%>/g
+};
+
+
+
+
+
 
 
 
