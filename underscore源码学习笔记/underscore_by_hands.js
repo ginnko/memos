@@ -2026,16 +2026,76 @@ var result = function(instance, obj){
   return instance._chain ? _(obj).chain() : obj;
 };
 
+// 向underscore库中扩展自定义方法
+// 又一个关于this的
+// 擦得
+// 看的稀里糊涂的
+// 嘛哒!
 _.mixin = function(obj){
+  // _.functions(obj)返回obj上所有的属性是函数的key组成的数组
   _.each(_.functions(obj), function(name){
     var func = _[name] = obj[name];
+    // 将name方法挂在_的原型链上
     _.prototype[name] = function(){
+      // 这里的this指向_.prototype
       var args = [this._wrapped];
       push.apply(args, arguments);
+      // 这里和链式调用有关,然而看不明白这里context的关系...
       return result(this, func.apply(_, args));
     };
   });
 };
+
+// 抄原文
+// 将前面定义的underscore方法添加给包装过的对象
+// 即添加到_prototype中
+// 使underscore支持面向对象形式的调用
+_.mixin(_);
+
+// 将Array原型链上有的方法都添加到underscore中
+// 为什么要这样做?
+_.each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'],function(name){
+  var method = ArrayProto[name];
+  _.prototype[name] = function(){
+    var obj = this._wrapped;
+    method.apply(obj, arguments);
+    if((name === 'shift' || name === 'splice') && obj.length === 0){
+      // what?!
+      delete obj[0];
+    }
+    return result(this, obj);
+  };
+});
+
+
+// 添加原生数组方法给underscore
+_.each(['concat', 'join', 'slice'], function(name){
+  var method = ArrayProto[name];
+  _.prototype[name] = function(){
+    return result(this, method.apply(this._wrapped, arguments));
+  };
+});
+
+// 抄原文
+// 一个包装过(oop)并且链式调用的对象
+// 用value方法获取结果
+_.prototype.value = function(){
+  return this._wrapped;
+};
+
+_.prototype.valueOf = _.prototype.toJSON = _.prototype.value;
+
+_.prototype.toString = function(){
+  return '' + this._wrapped;
+};
+
+// 抄原文
+// 兼容amd规范
+if(typeof define === 'function' && define.amd){
+  define('underscore', [], function(){
+    return _;
+  });
+}
 
 
 
