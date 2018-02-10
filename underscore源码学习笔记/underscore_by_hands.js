@@ -88,13 +88,18 @@
   var cb = function(value, context, argCount){
     if(value == null) return _.identity;
     if(_.isFunction(value)) return optimizeCb(value, context, argCount);
+    // 函数判断在前对象判断在后顺序很关键，因为_.isObject将function也视为对象
     if(_.isObject(value)) return _.matcher(value);
     return _.property(value);
   };
   
-  
+  // 这个函数的作用是用来产生针对各种类型的返回函数
+  // 这个返回函数能够用于集合类型的对象中的每个元素通过返回函数进行值的处理
   _.iteratee = function(value, context){
-    return cb(value, context, Infinity);//Q-此处为何要用Infinity?
+    // 这个函数是对内部cb函数的一个直接使用
+    // 此处使用Infinity是直接对应到5个参数以上的情况？
+    // 使用.apply()来处理？
+    return cb(value, context, Infinity);
   };
 
   // 用来创建对象键值对复制函数的函数
@@ -158,6 +163,7 @@
   // 作为参数传入的iteratee是个函数
   // 类似于forEach
   // 在传入的原数组或对象上直接处理
+  // 已经确定iteratee是个函数的前提下使用了optimizeCb()
   _.each = _.forEach = function(obj, iteratee, context){
     iteratee = optimizeCb(iteratee, context);//注意这种用法！不会发生变量错误
     var i, length;
@@ -1531,7 +1537,7 @@ _.isMatch = function(object, attrs){
   if(object == null){
     return !length;
   }
-  // 为何要写这行代码？
+
   var obj = Object(object);
 
   // 如果obj对象没有attrs对象的某个key
@@ -1544,7 +1550,7 @@ _.isMatch = function(object, attrs){
       return false;
     }
   }
-  return false;
+  return true;
 };
 
 // 这个函数全部是显示进行类型转换
@@ -1708,6 +1714,7 @@ if(!_.isArguments(arguments)){
 // 不懂这个if条件啊
 if(typeof /./ != 'function' && typeof Int8Array != 'object'){
   _.isFunction = function(obj){
+    // 此处为何要做这个逻辑取值？
     return typeof obj == 'function' || false;
   };
 }
