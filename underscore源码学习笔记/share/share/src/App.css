@@ -1,0 +1,112 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 80px;
+}
+
+.App-header {
+  /* background-color: #222; */
+  height: 50px;
+  padding: 20px;
+  color: black;
+  border-bottom: 1px solid black;
+}
+
+.App-header h1{
+  margin: 0;
+  padding: 0;
+  line-height: 50px;
+}
+
+.App-title {
+  font-size: 1.5em;
+}
+
+.App-intro {
+  font-size: large;
+}
+
+@keyframes App-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+/*===========================工具样式==============================*/
+.pull-right{
+  float: right;
+}
+.pull-left{
+  float: left;
+}
+
+/*============通过js添加的button样式================*/
+ul.sideNav li:hover{
+  margin-right: -26px;
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+/*===============================================*/
+/*========================头部导航样式=============================*/
+div.headWrapper{
+  text-align: left;
+}
+.headNav{
+  /* font-size: 0; */
+  line-height: 50px;
+  margin: 0;
+  padding: 0;
+  display: inline-block;
+  vertical-align: middle;
+}
+div.headNav{
+  font-size: 24px;
+  margin-right: 100px;
+}
+
+ul.headNav li{
+  display: inline-block;
+  border: 1px solid black;
+  padding: 5px;
+  border-radius: 3px;
+}
+
+ul.headNav li a{
+  display: block;
+  color: black;
+  font-size: 16px;
+  text-decoration: none;
+  height: 20px;
+  line-height: 20px;
+}
+
+ul.headNav li+li{
+  margin-left: 20px;
+}
+/*==========================内容样式============================*/
+div.side{
+  width: 15%;
+  border-right: 1px solid black;
+  padding-right: 25px;
+  box-sizing: border-box;
+}
+
+div.content{
+  width: 83%;
+  border-left: 1px solid black;
+}
+
+ul.sideNav li{
+  list-style: none;
+  border: 1px solid black;
+  margin-bottom: 15px;
+  padding: 8px;
+  border-radius: 7px;
+  background-color: white;
+}
+ul.sideNav li a{
+  text-decoration: none;
+  color: black;
+}

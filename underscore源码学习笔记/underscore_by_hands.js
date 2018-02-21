@@ -152,6 +152,7 @@
   // 包括数组、arguments、HTML Collection 以及 NodeList
   // 包括{length: 10}这种对象
   // 包括字符串、函数
+  // 普通对象没有length属性
   var isArrayLike = function(collection){
     var length = getLength(collection);
     return typeof length == 'number' && length > 0 && length <= MAX_ARRAY_INDEX;//三个判断条件：length属性是number类型，大于零，小于最大正值
@@ -312,6 +313,11 @@
 
   // 这个函数中对map的使用，真是对map函数有了更深的认识
   // _.property（）是一个闭包，会返回一个函数
+  // var property = function(key){
+  //   return function(obj){
+  //     return obj == null ? void 0 : obj[key];
+  //   };
+  // };
   _.pluck = function(obj, key){
     return _.map(obj, _.property(key));
   };
@@ -448,7 +454,7 @@ _.indexBy = group(function(result, value, key){
   result[key] = value;
 });
 
-_countBy = group(function(result, value, key){
+_.countBy = group(function(result, value, key){
   if(_.has(result, key)){
     result[key]++;
   }else{
@@ -534,6 +540,8 @@ _.rest = _.tail = _.drop = function(array, n, guard){
 };
 
 // 假值：false null undefined '' NaN 0
+// _.filter函数传入的函数作为if判断的条件，返回true或false
+// 这个函数用于去除假值
 _.compact = function(array){
   return _.filter(array, _.identity);//_.identity在_.filter()中作为一个if条件的判断结果，假值返回false
 };
