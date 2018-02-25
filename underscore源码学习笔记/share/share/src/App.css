@@ -42,7 +42,7 @@
 }
 
 /*============通过js添加的button样式================*/
-ul.sideNav li:hover{
+.content-click{
   margin-right: -26px;
   border-right: none;
   border-top-right-radius: 0;
@@ -71,15 +71,11 @@ ul.headNav li{
   border: 1px solid black;
   padding: 5px;
   border-radius: 3px;
-}
-
-ul.headNav li a{
-  display: block;
   color: black;
   font-size: 16px;
-  text-decoration: none;
   height: 20px;
   line-height: 20px;
+  cursor: pointer;
 }
 
 ul.headNav li+li{
