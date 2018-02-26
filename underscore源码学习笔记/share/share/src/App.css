@@ -41,12 +41,13 @@
   float: left;
 }
 
+
 /*============通过js添加的button样式================*/
 .content-click{
   margin-right: -26px;
-  border-right: none;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+  border-right: none!important;
+  border-top-right-radius: 0!important;
+  border-bottom-right-radius: 0!important;
 }
 /*===============================================*/
 /*========================头部导航样式=============================*/
@@ -77,21 +78,39 @@ ul.headNav li{
   line-height: 20px;
   cursor: pointer;
 }
+ul.headNav li a{
+  text-decoration: none;
+  color: black;
+  font-size: 16px;
+}
 
 ul.headNav li+li{
   margin-left: 20px;
 }
 /*==========================内容样式============================*/
+div.contentWrapper{
+  position: relative;
+}
 div.side{
   width: 15%;
   border-right: 1px solid black;
   padding-right: 25px;
   box-sizing: border-box;
+  position: absolute;
+  z-index: 100;
 }
 
 div.content{
-  width: 83%;
+  width: 84.93%;
+  position: absolute;
   border-left: 1px solid black;
+  z-index: -1;
+  left: 218.5px;
+}
+
+div.content div{
+  margin: 0;
+  padding: 0;
 }
 
 ul.sideNav li{
@@ -101,6 +120,7 @@ ul.sideNav li{
   padding: 8px;
   border-radius: 7px;
   background-color: white;
+  cursor: pointer;
 }
 ul.sideNav li a{
   text-decoration: none;
