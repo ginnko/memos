@@ -26,7 +26,10 @@ const Cases = [
   [
     {
       'title': '_.object()',
-      'code': '返回type === \'function\' || type === \'object\' && !!obj;',
+      'code': '_.isObject = function(obj) \{\n\
+        var type = typeof obj\;\n\
+        return type === \'function\' || type === \'object\' && !!obj\;\n\
+      };',
     },
     {
       'title': 'isArrayLike()',
@@ -36,7 +39,9 @@ const Cases = [
     },
     {
       'title': '_.isArray(obj)',
-      'code': '使用的方法 object.prototype.toString.call(obj) === \'[object Array]\''
+      'code': '_.isArray = nativeIsArray || function(obj) \{\n\
+        return toString.call(obj) === \'[object Array]\'\;\n\
+      };'
     },
     {
       'title': 'Arguments, Function, String, Number, Date, RegExp, Error类型判断',
@@ -44,7 +49,13 @@ const Cases = [
         \_[\'is\' + name] = function(obj)\{\n\
           return toString.call(obj) === \'[object \' + name + \']\'\;\n\
         }\;\n\
-  });',
+  })\;\n\n\
+  //针对ie<9 的情况\n\n\
+  if (!_.isArguments(arguments)) \{\n\
+    _.isArguments = function(obj) \{\n\
+      return _.has(obj, \'callee\')\;\n\
+    }\;\n\
+  }',
       'linkName': '注1：关于\_.each()',
       'link': 'http://underscorejs.org/#each'
     }
@@ -103,3 +114,11 @@ const Cases = [
 ];
 
 export {Cases};
+
+/*
+1.介绍部分加上整体架构：https://github.com/hanzichi/underscore-analysis/issues/27
+2.内部函数部分 主要从用途角度和优点介绍这两类函数：减少代码，将不同的情况归一处理
+3.技巧：增加节流和去抖，增加void 0，增加对数组和对象key的引用以及情况的归一处理
+
+
+*/ 
