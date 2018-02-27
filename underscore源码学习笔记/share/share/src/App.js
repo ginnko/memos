@@ -22,7 +22,7 @@ class Content extends Component{
   constructor(props){
     super(props);
     this.state={
-      clicked: 1,
+      clicked: 4,
     };
     this.contentClick = this.contentClick.bind(this);
   }
@@ -64,15 +64,15 @@ const Route = ({clicked}) => {
 
 const Card = ({clicked}) => {
   const showCase = Cases[clicked];
-  showCase.map((item) => {
-    console.log(item);
-  });
+  if(!showCase){
+    return '';
+  }
   return(
     <div>
     {
      showCase.map((item, index) => 
       <div key={index + item['title']}>
-        <p className="case-title"><span>{index+1}</span>{'.' + item['title']}</p>
+        <p className="case-title"><span>{index >= 0 ? index+1 : ''}</span>{item['title'] ? '.' + item['title'] : ''}</p>
         <p className="case-content">{item['content'] ? item['content'] : ''}</p>
         <pre className="case-code">{item['code'] ? item['code'] : ''}</pre>
         <p className="case-link"><a href={item['link']}>{item['linkName'] ? item['linkName'] : ''}</a></p>
@@ -88,7 +88,7 @@ class App extends Component {
   constructor(props){
   super(props);
   this.state = {
-    clicked: 1,
+    clicked: 4,
   };
   this.modifyClicked = this.modifyClicked.bind(this);
   }

@@ -49,27 +49,56 @@ const Cases = [
       'link': 'http://underscorejs.org/#each'
     }
   ],
-  // ],
-  // [{'title': '简介',
-  // 'content': 'Underscore使用原生的javascript扩充了已有或没有的方法,是一个工具库'
-  // },
-  // ],
-  // [{'title': '简介',
-  // 'content': 'Underscore使用原生的javascript扩充了已有或没有的方法,是一个工具库'
-  // },
-  // ],
-  // [{'title': '简介',
-  // 'content': 'Underscore使用原生的javascript扩充了已有或没有的方法,是一个工具库'
-  // },
-  // ],
-  // [{'title': '简介',
-  // 'content': 'Underscore使用原生的javascript扩充了已有或没有的方法,是一个工具库'
-  // },
-  // ],
-  // [{'title': '简介',
-  // 'content': 'Underscore使用原生的javascript扩充了已有或没有的方法,是一个工具库'
-  // },
-  // ],
+  [
+    {
+      'title': '分类',
+      'content': '1.针对不同类型对象做出不同处理的的路由函数;2.创建其他函数的函数'
+    },
+    {
+      'title': 'optimizeCb()',
+      'content': '处理函数的函数, 针对函数是否指定上下文以及传入参数的数量来指定对应的返回函数',
+      'linkName':'注1:参见optimizeCb()的定义',
+      'link':'https://github.com/hanzichi/underscore-analysis/blob/master/underscore-1.8.3.js/underscore-1.8.3-analysis.js#L107',
+    },
+    {
+      'title': 'cb()',
+      'content': '针对null,对象,函数,其他类型返回相应值的路由函数',
+      'linkName': '注2:参加cb()的定义',
+      'link': 'https://github.com/hanzichi/underscore-analysis/blob/master/underscore-1.8.3.js/underscore-1.8.3-analysis.js#L149',
+    },
+    {
+      'title': 'createReduce()',
+      'content': '用来创建reduce和reduceRight两个函数',
+      'linkName': '注3:参见createReduce()的定义',
+      'link': 'https://github.com/hanzichi/underscore-analysis/blob/master/underscore-1.8.3.js/underscore-1.8.3-analysis.js#L337',
+    }
+  ],
+  [
+    {
+      'title': 'underscore中的函数构建方式',
+      'content': '基本可以分成两种:1.由现有函数进行组合;2.使用高阶函数',
+    },
+    {
+      'title': '_.pluck()',
+      'code': '  _.pluck = function(obj, key)\{\n\
+        return _.map(obj, _.property(key))\;\n\
+    };',
+      'linkName': '注1:pluck函数的使用',
+      'link': 'http://underscorejs.org/#pluck',
+    },
+    {
+      'title': 'group()',
+      'linkName': '注2:参见group()的定义',
+      'link': 'https://github.com/hanzichi/underscore-analysis/blob/master/underscore-1.8.3.js/underscore-1.8.3-analysis.js#L704',
+    }
+  ],
+  [
+    {
+      'title': '洗牌算法_.shuffle()',
+      'linkName': '注1:洗牌算法',
+      'link': 'https://github.com/hanzichi/underscore-analysis/issues/15',
+    }
+  ]
 
 ];
 
