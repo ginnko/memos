@@ -36,11 +36,11 @@ class Content extends Component{
     return (
       <ul className="sideNav">
         <li onClick={() => this.contentClick(0)} className={classNames({'content-click': clicked == 0})} key="0">介绍</li>
-        <li onClick={() => this.contentClick(1)} className={classNames({'content-click': clicked == 1})} key="1">类型判断</li>
-        <li onClick={() => this.contentClick(2)} className={classNames({'content-click': clicked == 2})} key="2">内部函数</li>
-        <li onClick={() => this.contentClick(3)} className={classNames({'content-click': clicked == 3})} key="3">函数构造</li>
-        <li onClick={() => this.contentClick(4)} className={classNames({'content-click': clicked == 4})} key="4">算法</li>
-        <li onClick={() => this.contentClick(5)} className={classNames({'content-click': clicked == 5})} key="5">技巧</li>
+        <li onClick={() => this.contentClick(1)} className={classNames({'content-click': clicked == 1})} key="1">整体架构</li>
+        <li onClick={() => this.contentClick(2)} className={classNames({'content-click': clicked == 2})} key="2">类型判断</li>
+        <li onClick={() => this.contentClick(3)} className={classNames({'content-click': clicked == 3})} key="3">函数构建</li>
+        <li onClick={() => this.contentClick(4)} className={classNames({'content-click': clicked == 4})} key="4">代码思路</li>
+        <li onClick={() => this.contentClick(5)} className={classNames({'content-click': clicked == 5})} key="5">有用的技术</li>
       </ul>
     );
   }
@@ -73,7 +73,7 @@ const Card = ({clicked}) => {
      showCase.map((item, index) => 
       <div key={index + item['title']}>
         <p className="case-title"><span>{index >= 0 ? index+1 : ''}</span>{item['title'] ? '.' + item['title'] : ''}</p>
-        <p className="case-content">{item['content'] ? item['content'] : ''}</p>
+        <pre className="case-content">{item['content'] ? item['content'] : ''}</pre>
         <pre className="case-code">{item['code'] ? item['code'] : ''}</pre>
         <p className="case-link"><a href={item['link']}>{item['linkName'] ? item['linkName'] : ''}</a></p>
       </div>

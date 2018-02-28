@@ -139,7 +139,7 @@ p.case-title{
   font-weight: bold;
 }
 
-p.case-content{
+pre.case-content{
   text-align: left;
   font-size: 16px;
   color: black;
