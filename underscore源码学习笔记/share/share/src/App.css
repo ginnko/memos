@@ -110,11 +110,11 @@ div.content{
 
 div.content div{
   margin-left: 10px;
-  margin-bottom: 50px;
+  margin-bottom: 100px;
 
 }
 div.content div:last-of-type{
-  margin-bottom: 100px;
+  margin-bottom: 200px;
 
 }
 
