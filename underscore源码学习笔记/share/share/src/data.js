@@ -45,6 +45,12 @@ const Cases = [
         .reverse(\)\n\
         .value();'
 
+    },
+    {
+      'title': '实现上述三种调用的方法',
+      'content': '四个重要函数：_(),result(),_.chain(),_.mixin()',
+      'linkName': '注1:参见架构分析',
+      'link': 'https://github.com/hanzichi/underscore-analysis/issues/27',
     }
   ],
   [
@@ -121,14 +127,49 @@ const Cases = [
       'link': 'http://underscorejs.org/#pluck',
     },
   ],
-
+  [
+    {
+      'title': '使用void 0 替代 undefined',
+      'content': 'undefined在低版本以及es5的函数作用域中能被重写。\n\n\
+void不能被重写，void * 会返回undefined。\n\n\
+减少字节数。',
+    },
+    {
+      'title': '把不同情况归一处理',
+      'content': '感觉underscore内部的一个设计原则就是不同情况归一处理来简化代码。',
+      'linkName': '注1：参见_.map()的实现代码',
+      'link': 'https://github.com/hanzichi/underscore-analysis/blob/master/underscore-1.8.3.js/underscore-1.8.3-analysis.js#L311',
+    },
+  ],
+  [
+    {
+      'title': '函数节流和去抖',
+      'content': '解决请求速度和响应速度不匹配的方法',
+    },
+    {
+      'title': '函数节流',
+      'content': '某个时段内，频发事件只触发一次。\n\n\
+      使用场景：\n\n\
+      1.文本输入的验证（连续输入文字后发送 AJAX 请求进行验证，验证一次就好）；\n\n\
+      2.DOM 元素动态定位，window 对象的 resize 和 scroll 事件。',
+      'linkName': '注1：函数节流分析',
+      'link': 'https://github.com/hanzichi/underscore-analysis/issues/22',
+    },
+    {
+      'title': '函数去抖',
+      'content': '只要有事件发生就重新计时，直到满足停顿的时间再触发一次。\n\n\
+      使用场景：\n\n\
+      1.DOM 元素的拖拽功能实现;\n\n\
+      2.计算鼠标移动的距离。',
+      'linkName': '注2：函数去抖分析',
+      'link': 'https://github.com/hanzichi/underscore-analysis/issues/21',
+    },
+  ],
 ];
 
 export {Cases};
 
 /*
-1.介绍部分加上整体架构：https://github.com/hanzichi/underscore-analysis/issues/27（1）
-2：有用的技术：增加节流和去抖（2）
-3.函数思路：增加void 0，对数组和对象key的使用，对不同对象的归一化的使用（3）
-
+1.有用的技术：增加节流和去抖（2）
+2.函数思路：增加void 0，对数组和对象key的使用，对不同对象的归一化的使用（3）
 */ 

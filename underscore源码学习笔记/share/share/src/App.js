@@ -22,7 +22,7 @@ class Content extends Component{
   constructor(props){
     super(props);
     this.state={
-      clicked: 1,
+      clicked: 0,
     };
     this.contentClick = this.contentClick.bind(this);
   }
@@ -88,7 +88,7 @@ class App extends Component {
   constructor(props){
   super(props);
   this.state = {
-    clicked: 1,
+    clicked: 0,
   };
   this.modifyClicked = this.modifyClicked.bind(this);
   }
