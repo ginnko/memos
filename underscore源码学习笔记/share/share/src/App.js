@@ -39,7 +39,7 @@ class Content extends Component{
         <li onClick={() => this.contentClick(1)} className={classNames({'content-click': clicked == 1})} key="1">整体架构</li>
         <li onClick={() => this.contentClick(2)} className={classNames({'content-click': clicked == 2})} key="2">类型判断</li>
         <li onClick={() => this.contentClick(3)} className={classNames({'content-click': clicked == 3})} key="3">函数构建</li>
-        <li onClick={() => this.contentClick(4)} className={classNames({'content-click': clicked == 4})} key="4">代码思路</li>
+        <li onClick={() => this.contentClick(4)} className={classNames({'content-click': clicked == 4})} key="4">代码技巧</li>
         <li onClick={() => this.contentClick(5)} className={classNames({'content-click': clicked == 5})} key="5">有用的技术</li>
       </ul>
     );
@@ -61,6 +61,9 @@ const Route = ({clicked}) => {
     return <Card clicked={clicked}/>;
   }
 }
+
+// 这个组件不够灵活啊，要改成可插入式♂的才是极好的
+// 内容如果是代码，书写的方式也很不友好，这个要查查资料了
 
 const Card = ({clicked}) => {
   const showCase = Cases[clicked];

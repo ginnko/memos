@@ -12,27 +12,38 @@ const Cases = [
   4.更加熟悉了一些js的基础，比如原型链、this、原生函数等\n\
   5.学到一些小技术'
   
-},
+  },
+  {'title': '参考资料',
+  'content': '\n\
+  1.underscore API\n\
+  2.underscore 源码\n\
+  3.underscore 源码分析\n\
+  4.《javascript模式》'
+  },
 
   ],
   [
     {'title': '_符号',
     'content': '_，这个符号相当于jQuery中的$。变成全局变量的方法：',
-    'code': '1. (function() { ... }.call(this));\
-    \n2.最开头 var root = this;//在客户端比如浏览器，root=window\
-    \n3.  var _ = function(obj) \{\n      if (obj instanceof _\)\n\
+    'code': '1. (function() { ... }.call(this));//代码包在一个立即执行函数中，然后从全局作用域中给这个匿名函数传入一个指向this的参数\
+    \n\n2.最开头 var root = this;//在客户端比如浏览器，root=window\
+    \n\n3.  var _ = function(obj) \{\n      if (obj instanceof _\)\n\
           return obj\;\n      if (!(this instanceof _)\)\n\
           return new _(obj)\;\n\
         this._wrapped = obj\;\n\
       };\
-    \n4.if (typeof exports !== \'undefined\')\{\n\
+    \n强制使用new的模式。使用new 调用构造函数时，函数体内发生的三件事：1.创建一个不包含自己属性的对象，将它的引用赋值给this，继承函数的原型；2.通过this将函数中的\n\
+    属性和方法添加进这个对象3.最后返回this指向的新对象。注：参见《javascript模式》关于强制使用new模式的说明\
+    \n\n4.if (typeof exports !== \'undefined\')\{\n\
       if (typeof module !== \'undefined\' && module.exports)\{\n\
         exports = module.exports = _\;\n\
       \}\n\
       exports._ = _\;\n\
     } else \{\n\
       root._ = _\;\n\
-    }'
+    }',
+    'linkName': '注1：访问全局变量的最佳模式',
+    'link': 'https://github.com/ginnko/javascript-patterns/blob/master/chapter2.markdown#%E8%AE%BF%E9%97%AE%E5%85%A8%E5%B1%80%E5%AF%B9%E8%B1%A1',
     },
     {
       'title': '调用方式',
@@ -96,8 +107,24 @@ const Cases = [
       'content': '1.内部函数（路由函数）;2.创建其他函数的函数'
     },
     {
+      'title': '函数柯里化公式',
+      'content': 'underscore中绝大多数函数都是通过这种方式构建，下述代码是一个基本的公式，underscore中的构建方式都是在此基础上稍加变化而来。',
+      'code': '\n\
+      function schonfinkelize(fn) \{\n\
+        var slice = Array.prototype.slice,\n\
+        stored_args = slice.call(arguments, 1);\n\
+        return function () {\n\
+          var new_args = slice.call(arguments),\n\
+          args = stored_args.concat(new_args);\n\
+          return fn.apply(null, args);\n\
+        };\n\
+      }'
+    },
+    {
       'title': '内部函数1：optimizeCb()',
-      'content': '处理函数的函数, 针对函数是否指定上下文以及传入参数的数量来指定对应的返回函数',
+      'content': '处理函数的函数, 针对函数是否指定上下文以及传入参数的数量来指定对应的返回函数（函数定义中，其中一个参数是context，\n\
+用于绑定this指向，这是由于函数的this值是在进入执行上文才确定的原因,在《javascript模式》中有详细说明，所以underscore库中涉及\n\
+回调函数的地方都有传入context进行绑定）',
       'linkName':'注1:参见optimizeCb()的定义',
       'link':'https://github.com/hanzichi/underscore-analysis/blob/master/underscore-1.8.3.js/underscore-1.8.3-analysis.js#L107',
     },
@@ -140,6 +167,17 @@ void不能被重写，void * 会返回undefined。\n\n\
       'linkName': '注1：参见_.map()的实现代码',
       'link': 'https://github.com/hanzichi/underscore-analysis/blob/master/underscore-1.8.3.js/underscore-1.8.3-analysis.js#L311',
     },
+    {
+      'title': '原型链上的属性简写',
+      'content': 'hasOwnProperty有两种调用方式，一种是面向对象的模式，一种是函数应用模式。使用后一种可以避免调用时的命名冲突，也可以避免冗长的\n属性查找。结合对hasOwnProperty()的缓存。',
+      'code': 'var ObjProto = Object.prototype;\n\
+hasOwnProperty = ObjProto.hasOwnProperty;\n\
+return obj != null && hasOwnProperty.call(obj, key);'
+    },
+    {
+      'title': '值的相等判断',
+      'content': 'underscore中使用\'==\'数量多于\'===\'。'
+    }
   ],
   [
     {
