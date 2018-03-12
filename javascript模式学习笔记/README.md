@@ -499,3 +499,71 @@ if(typeof Array.isArray === 'undefined'){
          重写自身的函数体，使第二次及后续的调用做更少的工作
 
 ```
+
+### 第五章 对象创建模式(2018.3.12~2018.3.?)
+
+- 命名空间模式
+  为了避免产生全局污染,可以为应用或者类库创建一个全局对象,然后将所有功能都添加到这个对象上.
+  - 命名空间的缺点:
+    1. 代码量稍有增加,每个函数和变量前增加了这个命名空间对象的前缀,会增加代码量,增大文件大小;
+    2. 该全局实例可以被随时修改;(这个不太明白...)
+    3. 命名的深度嵌套会减慢属性值的查询
+  - 通用命名空间函数
+  ```
+  var MYAPP = MYAPP || {};
+  MYAPP.namespace = function(ns_string){
+    var parts = ns_string.split('.'),
+        parent = MYAPP,
+        i;
+    if(parts[0] === 'MYAPP'){
+      parts = parts.slice(1);
+    }
+    for(i = 0; i < parts.length; i += 1){
+      if(typeof parent[parts[i]] === 'undefined'){
+        parent[parts[i]] = {};
+      }
+      parent = parent[parts[i]];
+    }
+    return parent;
+  };
+  //使用
+  MYAPP.namespace('modules.module51');
+  MYAPP.namespace('once.upon.a.time.there.was.this.long.nested.property');
+  ```
+  - 声明依赖
+    - 声明就是创建一个本地变量,指向需要用到的模块,比如下述代码:
+    ```
+    var myFunction = function () {
+      // dependencies
+      var event = YAHOO.util.Event,
+        dom = YAHOO.util.Dom;
+
+      // use event and dom variables
+      // for the rest of the function...
+    };
+    ```
+    - 好处
+      1. 明确依赖;
+      2. 将声明放在顶部容易被查找和解析;
+      3. 本地变量用于会比全局变量要快,甚至比全局变量的属性还要快.使用了依赖声明模式之后，全局变量的解析在函数中只会进行一次，在此之后将会使用更快的本地变量。
+  - 私有属性和方法
+    - 私有成员
+    通过闭包来实现.在构造函数中创建一个闭包,任何在这个闭包中的部分都不会暴露到构造函数之外,如下代码:
+    ```
+    function Gadget() {
+      // private member
+      var name = 'iPod';
+      // public function
+      this.getName = function () {
+        return name;
+      };
+    }
+    var toy = new Gadget();
+
+    // `name` is undefined, it's private
+    console.log(toy.name); // undefined
+    // public method has access to `name`
+    console.log(toy.getName()); // "iPod"
+    ```
+    **在js中创建私有成员很容易,只需要将私有成员放在一个函数中,保证它是函数的本地变量,也就是说让它在函数之外不可以被访问.**
+
