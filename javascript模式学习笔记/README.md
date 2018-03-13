@@ -566,4 +566,116 @@ if(typeof Array.isArray === 'undefined'){
     console.log(toy.getName()); // "iPod"
     ```
     **在js中创建私有成员很容易,只需要将私有成员放在一个函数中,保证它是函数的本地变量,也就是说让它在函数之外不可以被访问.**
+    - 特权方法
+      - 定义: 特权方法的概念不涉及任何语法,只是给一个可以访问到私有成员的公有方法的名字
+      - 应用: 上述栗子中getName()就是特权方法,因为它有能访问到name属性的特殊权限
+      - 问题: 如果返回的私有成员是对象,由于返回的是引用,会导致从外部可以修改这个私有成员
+      - 解决办法: 最低授权原则(POLA),永远不要给出比需求更多的东西
+      - 另一种解决办法: 使用通用的对象赋值函数创建这个私有成员(对象类型)的一个副本.两个这样的函数——一个叫extend()，它会浅复制一个给定的对象（只复制顶层的成员）。另一个叫extendDeep()，它会做深复制，遍历所有的属性和嵌套的属性。(**underscore中这两个函数都有用到诶**)
+  - 使用对象字面量创建私有成员
+    - 原理:  使用一个立即执行的匿名函数创建的闭包。
+    - 方式1:
+      ```
+      var myobj; // this will be the object
+      (function () {
+        // private members
+        var name = "my, oh my";
 
+        // implement the public part
+        // note -- no `var`
+        myobj = {
+          // privileged method
+          getName: function () {
+            return name;
+          }
+        };
+      }());
+
+      myobj.getName(); // "my, oh my"
+      ```
+    - 方式2:
+      ```
+      //类似模块模式
+      var myobj = (function () {
+        // private members
+        var name = "my, oh my";
+
+        // implement the public part
+        return {
+          getName: function () {
+            return name;
+          }
+        };
+      }());
+
+      myobj.getName(); // "my, oh my"
+      ```
+  - 原型和私有成员
+    结合上述两种创建私有成员的方法,将共同的私有成员在原型对象中创建
+
+  - 暴露模式
+    将私有函数暴露为公有的方法.具体做法是将直接定义在返回对象属性中的函数移到闭包中,将函数表达式赋值给一个变量,让这个变量成为返回对象的某个属性值,这样即使对这个对象的属性做了修改也不会殃及对象闭包中的函数.
+
+
+  - 模块模式
+    模块模式是上述集中模式的组合
+  
+  - 创建构造函数的模块
+  ```
+  MYAPP.namespace('MYAPP.utilities.Array');
+
+  MYAPP.utilities.Array = (function () {
+
+      // dependencies
+    var uobj = MYAPP.utilities.object,
+      ulang = MYAPP.utilities.lang,
+
+      // private properties and methods...
+      Constr;
+
+      // end var
+
+      // optionally one-time init procedures
+      // ...
+
+      // public API -- constructor
+      Constr = function (o) {
+        this.elements = this.toArray(o);
+      };
+      // public API -- prototype
+      Constr.prototype = {
+        constructor: MYAPP.utilities.Array,//constructor只是原型对象的一个属性
+        version: "2.0",
+        toArray: function (obj) {
+          for (var i = 0, a = [], len = obj.length; i < len; i += 1) {
+            a[i] = obj[i];
+          }
+          return a;
+        }
+      };
+    
+    return Constr;
+    // return the constructor
+    // to be assigned to the new namespace return Constr;
+
+  }());
+
+  //使用
+  var arr = new MYAPP.utilities.Array(obj);
+  ```
+  - 在模块中引入全局上下文
+  通常会传递全局变量甚至是全局对象本身。引入全局上下文可以加快函数内部的全局变量的解析，因为引入之后会作为函数的本地变量.**这个感觉和underscore中的不太一样,感觉underscore只是利用了立即执行函数创建独立作用域的特性,又感觉很相似...**
+  ```
+  MYAPP.utilities.module = (function (app, global) {
+
+    // references to the global object
+    // and to the global app namespace object
+    // are now localized
+    
+  }(MYAPP, this));
+  ```
+  - 沙箱模式
+  沙箱模式为模块提供了一个环境,模块在这个环境中的任何行为都不会影响到其他的模块和其他模块的沙箱.
+    - 沙箱模式的主要目的是解决命名空间模式的短处: 
+      1. 依赖一个全局变量成为应用的全局命名空间。在命名空间模式中，没有办法在同一个页面中运行同一个应用或者类库的不同版本，在为它们都会需要同一个全局变量名，比如MYAPP。
+      2. 代码中以点分隔的名字比较长，无论写代码还是解析都需要处理这个很长的名字，比如MYAPP.utilities.array。
