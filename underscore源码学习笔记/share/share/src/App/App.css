@@ -1,0 +1,30 @@
+.App {
+  text-align: center;
+}
+
+.App-header {
+  height: 50px;
+  padding: 20px;
+  color: black;
+  border-bottom: 1px solid black;
+}
+
+div.contentWrapper{
+  position: relative;
+}
+div.side{
+  width: 15%;
+  border-right: 1px solid black;
+  padding-right: 25px;
+  box-sizing: border-box;
+  position: absolute;
+  z-index: 100;
+}
+
+div.content{
+  position: absolute;
+  border-left: 1px solid black;
+  z-index: -1;
+  left: 14.93%;
+}
+

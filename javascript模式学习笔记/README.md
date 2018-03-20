@@ -718,3 +718,68 @@ if(typeof Array.isArray === 'undefined'){
   - method()方法
 
 
+### 第六章 代码复用模式(2018.3.14~2018.3.?)
+
+- 类式继承 && 现代继承模式
+  现代继承模式是指那些不需要你去想类这个概念的模式
+  - 类式继承
+    1. 默认模式
+    属性和方法均可通过原型链访问
+    ```
+    //parent构造函数
+    function Parent(name) {
+      this.name = name || 'Adam';
+    }
+
+    //给原型增加方法
+    Parent.prototype.say = function () {
+      return this.name;
+    };
+
+    //空的child构造函数
+    function Child(name) {}
+
+    //继承
+    inherit(Child, Parent);
+
+    function inherit(C, P) {
+      C.prototype = new P();
+    }
+    ```
+    - 一个在构造函数上常用的规则是,用于复用的成员(属性和方法)应该被添加到原型上.
+    - 缺点:
+      1. 继承了父对象自己的属性,这些属性可能不需要复用
+      2. 在使用inherit()函数时另外一个不便是它不能够让你传参数给子构造函数,这些参数有可能是想再传给父构造函数.
+    - 借用构造函数
+      ```
+      function Child(a, c, b, d) {
+        Parent.apply(this, arguments);
+      }
+      ```
+      比较传统类式继承和借用构造函数继承
+      ```
+      //父构造函数
+      function Article() {
+        this.tags = ['js', 'css'];
+      }
+      var article = new Article();
+
+      //BlogPost通过类式继承1（默认模式）从article继承
+      function BlogPost() {}
+      BlogPost.prototype = article;
+      var blog = new BlogPost();
+      //注意你不需要使用`new Article()`，因为已经有一个实例了
+
+      //StaticPage通过借用构造函数的方式从Article继承
+      function StaticPage() {
+        Article.call(this);
+      }
+      var page = new StaticPage();
+
+      alert(article.hasOwnProperty('tags')); // true
+      alert(blog.hasOwnProperty('tags')); // false
+      alert(page.hasOwnProperty('tags')); // true
+      ```
+      **注意上面的hasOwnProperty方法,之前的认识认为这个方法只能用来区分自定义方法和原生自定义的方法(原型链上的),其实人家对于方法和属性均可以使用,且对于自定义的原型链也是适用的!!!**
+      **其实对上面那个`Artical.call(this)`不太明白为啥是复制,肯定不是引用就对了,它也没有返回值,只是位于一个函数的作用域中,不过是把this的指向给锁定了**
+
