@@ -9,3 +9,7 @@
 - git commit --amend能够在推送commit后再次修改git commit时保存的信息
 
 - JSON.parse(JSON.stringify(obj)):可以对obj对象进行深层复制
+
+- 删除commit
+
+  git reset --soft <想要删除的commit的前一个commit的id号>

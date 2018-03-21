@@ -1,6 +1,8 @@
 import React from 'react';
 import {Cases} from '../data';
 import './Card.css';
+import PropTypes from 'prop-types';
+
 
 const MakeTitle = ({title, index}) =>{
   console.log("title:8888", title);
@@ -57,5 +59,27 @@ const Card = ({clicked}) => {
     </div>
   );
 }
+
+Card.PropTypes = {
+  clicked: PropTypes.number.isRequired
+};
+
+MakeTitle.PropTypes = {
+  title: PropTypes.string.isRequired,
+  index: PropTypes.number.isRequired
+};
+
+MakeContent.PropTypes = {
+  content: PropTypes.string.isRequired
+};
+
+MakeCode.PropTypes = {
+  code: PropTypes.string.isRequired
+};
+
+MakeLink.PropTypes = {
+  link: PropTypes.string.isRequired,
+  linkName: PropTypes.string.isRequired
+};
 
 export { Card };

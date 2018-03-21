@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import classNames from 'classnames';
 import './Catalog.css';
+import PropTypes from 'prop-types';
+
 
 
 
@@ -31,5 +33,9 @@ class Catalog extends Component{
     );
   }
 }
+
+Catalog.PropTypes ={
+  transferFromChild: PropTypes.func.isRequired
+};
 
 export { Catalog };

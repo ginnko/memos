@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+
 import './App.css';
 import { Reference } from '../Reference';
 import { Catalog } from '../Catalog';
 import { Card } from '../Card'
+
 
 class App extends Component {
   constructor(props){
