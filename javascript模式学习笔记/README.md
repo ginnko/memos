@@ -146,7 +146,7 @@ console.log(o.constructor === Boolean); // true
     `// var this = Object.create(Person.prototype);`
   2. 通过this将属性和方法添加至这个对象;
   3. 最后返回this指向的新对象(如果没有手动返回其他对象).
-    说明:构造函数中可以返回任意对象,只要返回的东西是对象即可.如果返回值不是对象(字符串,数字或布尔值),程序不会报错,但这个返回值会被忽略,最终还是返回this所指的对象.
+    **说明:构造函数中可以返回任意对象,只要返回的东西是对象即可.如果返回值不是对象(字符串,数字或布尔值),程序不会报错,但这个返回值会被忽略,最终还是返回this所指的对象.**
 
 - 强制使用new的模式
   下述代码是基于上面陈述的通过new关键字创建调用构造函数时,函数体内发生的三件事
@@ -792,4 +792,169 @@ if(typeof Array.isArray === 'undefined'){
 
   **有的时候,当人们在js中提出单例的时候,它们可能实在指第五章讨论过的模块模式,这个要返回去再看一下...不记得了...**
 
-  
+- 使用new
+  在javascript中使用new语法实现单例:缓存实例.
+  - 方法1:将实例放到静态属性中
+    ```
+    function Universe(){
+      if(typeof Universe.instance === "object"){
+        return Universe.instance;
+      }
+      this.stacrt_time = 0;
+      this.bang = "Big";
+      Universe.instance = this;
+      return this;
+    }
+
+    var uni = new Universe();
+    var uni2 = new Universe();
+    uni === uni2;//true
+    ```
+    上面这个例子中,函数的属性可以直接在函数中操作,把函数视为对象就好理解了.
+    *这种模式的缺陷,instance属性可以从外部被修改*
+  - 方法2:将实例放到闭包中
+    ```
+    function Universe(){
+      var instance = this;
+      this.start_time = 0;
+      this.bang = "Big";
+      Universe = function(){
+        return instance;
+      };
+    }
+    ```
+    说明:第一次调用时,原始的构造函数调用并且正常返回this.在后续的调用中,被重写的构造函数被调用.被重写的这个构造函数可以通过闭包访问私有的instance变量并且将它返回.
+
+    这种模式的缺点是被重写的函数将丢失那些在**初始定义**和**重新定义**之间添加的属性.在这个列子中任何添加到Universe()原型上的属性将不会被链接到使用原来的实现创建的实例上.(这里的原来的实现是指实例由未被重写的构造函数创建的,而Universe()则是被重写的构造函数.)
+
+    使用下述代码实例化Universe()构造函数的结果如下,这证明了上述说明
+    ```
+    // adding to the prototype
+    Universe.prototype.nothing = true;
+
+    var uni = new Universe();
+
+    // again adding to the prototype
+    // after the initial object is created
+    Universe.prototype.everything = true;
+
+    var uni2 = new Universe();
+
+    Testing:
+    // only the original prototype was
+    // linked to the objects
+    uni.nothing; // true
+    uni2.nothing; // true
+    uni.everything; // undefined
+    uni2.everything; // undefined
+
+    // that sounds right:
+    uni.constructor.name; // "Universe"
+
+    // but that's odd:
+    uni.constructor === Universe; // false
+    ```
+    另一个示例,这个示例会修改实例的构造函数为重写的函数
+    ```
+    function Universe() {
+
+      // the cached instance
+      var instance;
+      //此处instance为undefined
+      
+      // rewrite the constructor
+      Universe = function Universe() {
+      //此处instance为undefined
+        return instance;
+      };
+      
+      // carry over the prototype properties
+      Universe.prototype = this;
+      //此处重写了重写后的Universe函数的原型对象为重写前的Universe函数new调用时创建的对象
+      
+      // the instance
+      instance = new Universe();
+      //由于上面instance为undefined,js规定当构造函数的返回值不是对象的时候,会默认返回this指向的对象,也就是重写后的Universe函数通过new调用时创建的空对象.
+      
+      // reset the constructor pointer
+      instance.constructor = Universe;
+      //由于constructor属性是定义在对象原型上的,对象本身没有这个属性,通过原型链查找到这个属性,由于上面Universe.prototype = this;这个操作,顺着原型链找到的constructor属性指向的是修改前的Universe函数,所以此处要改成重写后的Universe函数
+      
+      // all the functionality
+      instance.start_time = 0;
+      instance.bang = "Big";
+      
+      return instance;
+    }
+  - 另一种解决办法
+    ```
+    var Universe;
+    (function(){
+      var instance;
+      Universe = function Universe(){
+        if(instance){
+          return instance;
+        }
+        instance = this;
+        this.start_time = 0;
+        this.bang = "Big";
+      };
+    }());
+    ```
+    将构造函数和实例包在一个立即执行函数中,当构造函数第一次被调用时,它返回一个对象并将私有的instance指向它.
+    **这种方法不会重写构造函数,感觉简单好多啊**
+
+    **可问题是单例有个鸡鸡用?!**
+
+- 工厂模式
+  使用**工厂模式的目的就是创建对象**.它通常被在类或者类的静态方法中实现(**擦的,静态方法已经不是什么jiba玩意了**)
+
+  一个工厂模式的示例实现
+  ```
+  function CarMaker(){}
+
+  CarMaker.prototype.drive = function(){
+    return "Vroom, I have " + this.doors + " doors";
+  };
+
+  CarMaker.factory = function(type){
+    var constr = type,
+      newcar;
+      <!-- 功能1 -->
+      //检查属性构造函数是否存在
+    if(typeof CarMaker[constr] !== "function"){
+      throw(
+        name: "Error",
+        message: constr + " doesn't exist"
+      );
+    }
+    <!-- 功能2 -->
+    //属性构造函数的原型是否继承了CarMaker构造函数原型的方法
+    if(typeof CarMaker[constr].prototype.drive !== "function"){
+      CarMaker[constr].prototype = new CarMaker();//父类的实例是子类的原型
+    }
+    <!-- 功能3 -->
+    //使用属性构造函数创建对象
+    newcar = new CarMaker[constr]();
+    return newcar;
+  };
+  CarMaker.Compact = function(){
+    this.doors = 4;
+  };
+  CarMaker.Convertible = function(){
+    this.doors = 2;
+  };
+  CarMaker.SUV = function(){
+    this.doors = 24;
+  };
+  ```
+  内置对象工厂
+  内置的全局构造函数Object()会根据不同的输入创建不同的对象,如果传入一个数字,它会使用Number()构造函数创建一个对象,在传入字符串和布尔值的时候也会发生同样的事情.
+
+- 迭代器模式
+  在迭代器模式中,你的对象需要提供一个next()方法.按顺序调用next()方法必须放回序列中的下一个元素,但是"下一个"在你的特定的数据结构中指什么由你自己来决定.
+
+  在迭代器模式中，聚合对象通常也会提供一个方便的方法hasNext()，这样对象的使用者就可以知道他们已经获取到你数据的最后一个元素。
+
+- 装饰器模式
+  在装饰器模式中,一些额外的功能可以在运行时被动态地添加到一个对象中.装饰器模式的一个很方便的特性是可以对我们需要的特性进行定制和配置.刚开始时,我们有一个拥有基本功能的对象,然后可以从可用的装饰器中去挑选一些需要用到的去增加这个对象,甚至如果顺序很重要的话,还可以制定增强的顺序.
