@@ -783,7 +783,7 @@ if(typeof Array.isArray === 'undefined'){
       **注意上面的hasOwnProperty方法,之前的认识认为这个方法只能用来区分自定义方法和原生自定义的方法(原型链上的),其实人家对于方法和属性均可以使用,且对于自定义的原型链也是适用的!!!**
       **其实对上面那个`Artical.call(this)`不太明白为啥是复制,肯定不是引用就对了,它也没有返回值,只是位于一个函数的作用域中,不过是把this的指向给锁定了**
 
-### 第七章 设计模式(2018.3.22~2018.3.2?)
+### 第七章 设计模式(2018.3.22~2018.3.25)
 
 - 单例
   单例模式的核心思想是让制指定的类只存在唯一一个实例.这意味着当你第二次使用相同的类去创建对象的时候,你得到的应该和第一次创建的是同一个对象.
@@ -958,3 +958,279 @@ if(typeof Array.isArray === 'undefined'){
 
 - 装饰器模式
   在装饰器模式中,一些额外的功能可以在运行时被动态地添加到一个对象中.装饰器模式的一个很方便的特性是可以对我们需要的特性进行定制和配置.刚开始时,我们有一个拥有基本功能的对象,然后可以从可用的装饰器中去挑选一些需要用到的去增加这个对象,甚至如果顺序很重要的话,还可以制定增强的顺序.
+
+  - 装饰器实现
+    - 方法1： 基于原型链
+    ```
+    function Sale(price){
+      this.price = price || 100;
+    }
+    Sale.prototype.getPrice = function(){
+      return this.price;
+    };
+
+    //装饰器对象都将被作为构造函数的属性实现
+    Sale.decorators = {};
+
+    Sale.decorators.fedtax = {
+      getPrice: function(){
+        var price = this.uber.getPrice();//从父对象中取值？这是从哪里看到的？
+        price += price * 5 / 100;
+        return price;
+      }
+    };
+
+    Sale.decorators.quebec = {
+      getPrice: function(){
+        var price = this.uber.getPrice();
+        price += price * 7.5 / 100;
+        return price;
+      }
+    };
+
+    Sale.decorators.money = {
+      getPrice: function(){
+        return "$" + this.uber.getPrice().toFixed(2);
+      }
+    };
+
+    Sale.decorators.cdn = {
+      getPrice: function(){
+        return "CDN$" + this.uber.getPrice().toFixed(2);
+      }
+    };
+
+    //神奇方法decorate()
+    Sale.prototype.decorate = function(decorator){
+      var F = function(){},
+        overrides = this.constructor.decorators[decorator],
+        i, newobj;
+      <!-- =========================== -->
+      //这三行代码是实现的关键啊！！！
+      F.prototype = this;
+      newobj = new F();
+      newobj.uber = F.prototype;
+      <!-- =========================== -->
+      for (i in overrides){
+        if (overrides.hasOwnProperty(i)){
+          newobj[i] = overrides[i];
+        }
+      }
+      return newobj;
+    };
+
+    //使用
+    var sale = new Sale(100);
+    sale = sale.decorate('fedtax');
+    sale = sale.decorate('cdn');
+    sale.getPrice();
+    ```
+
+    - 方法2： 使用列表实现
+    ```
+    function Sale(price){
+      this.price = (price > 0) || 100;
+      this.decorators_list = [];
+    }
+
+    Sale.decorators = {};
+
+    Sale.decorators.fedtax = {
+      getPrice: function(price){
+        return price + price * 5 / 100;
+      }
+    };
+
+    Sale.decorators.quebec = {
+      gePrice: function(price){
+        return price + price * 7.5 / 100;
+      }
+    };
+
+    Sale.decorators.money = {
+      getPrice: function(price){
+        return "$" + price.toFixed(2);
+      }
+    };
+
+    Sale.prototype.decorate = function(decorator){
+      this.decorators_list.push(decorator);
+    };
+
+    Sale.prototype.getPrice = function(){
+      var price = this.price,
+        i,
+        max = this.decorators_list.length,
+        name;
+      for(i = 0; i < max; i += 1){
+        name = this.decorators_list[i];
+        price = Sale.decorators[name].getPrice(price);
+      }
+      return price;
+    };
+
+    //使用
+    var sale = new Sale(100);
+    sale = sale.decorate('fedtax');
+    sale = sale.decorate('cdn');
+    sale.getPrice();
+    ```
+    方法2要简单好多啊！！！原型链理解起来真不容易，真是乱的一匹。
+
+- 策略模式
+  策略模式允许在运行的时候选择算法。你的代码使用者可以在处理特定任务的时候根据即将要做的事情的上下文从一些可用的算法中选择一个。
+
+  使用策略模式的一个例子是解决表单验证的问题。你可以创建一个validator对象，有一个validate（）方法。这个方法被调用时不用区分具体的表单类型，它总是会返回同样的结果----一个没有通过验证的列表和错误信息。
+
+  但是根据具体的需要验证的表单和数据，你的代码的使用者可以选择进行不同类别的检查。你的validator选择最佳的策略来处理这个任务，然后将具体的数据检查工作交给合适的算法去做。
+
+  假设你不要姓， 名字可以接受任何内容，但要求年龄是一个数字，并且用户名只允许包含字母和数字，可用的配置：
+
+  ```
+    validator.config = {
+      first_name: 'isNonEmpty',
+      age: 'isNumber',
+      username: 'isAlphaNum'
+    };
+
+    //调用validate（）方法，然后将任何验证错误打印到控制台上
+
+    validator.validate(data);
+    if(validator.hasErrors()){
+      console.log(validator.messages.join("\n"));
+    }
+  ```
+  - validator的实现
+    这个实现的写法真是前所未见，还是看的太少。在核心对象中定义好属性，然后在对象外使用这些属性进行扩充。这是为了分割代码？看起来更清楚？
+    ```
+    validator.types.isNonEmpty = {
+      validate: function(value){
+        return value !== "";
+      },
+      instructions: "the value cannot be empty"
+    };
+
+    validator.types.isNumber = {
+      validate: function(value){
+        return !isNaN(value);
+      },
+      instructions: "the value can only be a valid number, e.g. 1, 3.14 or 2010"
+    };
+
+    validator.types.isAlphaNum = {
+      validate: function(value){
+        return !/[^a-z0-9]/i.test(value);
+      },
+      instructions: "the value can only contain characters and numbers, no special symbols"
+    };
+
+    //validator对象的核心实现
+
+    var validator = {
+      types: {},
+      messages: [],
+      config: {},
+      validate: function(data){
+        var i, msg, type, checker, result_ok;
+        this.messages = [];
+        for(i in data){
+          if(data.hasOwnProperty(i)){
+            type = this.config[i],
+            checker = this.types[type];
+            if(!type){
+              continue;
+            }
+            if(!checker){
+              throw {
+                name: "ValidationError",
+                message: "No handler to validate type " + type
+              };
+            }
+
+            result_ok = checker.validate(data[i]);
+            if(!result_ok){
+              msg = "Invalid vale for *" + i + "*, " + checker.instructions;
+            }
+          }
+        }
+        return this.hasErrors();
+      },
+      hasErrors: function(){
+        return this.messages.length !== 0;
+      }
+    };
+    ```
+    书中给出的说法是：validator对象是通用的，在所有的需要验证的场景下都可以保持这个样子。改进它的办法就是增加更多类型的检查。如果你将它用在很多页面上，很快就会有一个非常好的验证类型的集合。然后在每个新的使用场景下需要做的仅仅是配置validator然后调用validate（）方法。**看样子保持通用性才是这个对象如此设计的最根本的目的。**
+- 外观模式
+  外观模式是一种很简单的模式，它只是为对象提供了更多的可供选择的接口。使方法保持短小而不是处理太多的工作是一种很好的实践。
+  - 用法1:将一些通常可以共同使用的方法合并在一起
+    ```
+    var myevent = {
+      stop: function(e){
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    ```
+  - 用法2：弥合浏览器的兼容性
+    ```
+    var myevent = {
+      stop: function(e){
+        if(typeof e.preventDefault === "function"){
+          e.preventDefault();
+        }
+        if(typeof e.stopPropagation === "function"){
+          e.stopPropagation();
+        }
+        //ie
+        if(typeof e.returnValue === "boolean"){
+          e.returnValue = false;
+        }
+        if(typeof e.cancelBubble === "boolean"){
+          e.cancelBubble = true;
+        }
+      }
+    };
+    ```
+- 代理模式
+  在代理设计模式中，一个对象充当了另一个对象的接口角色。它和外观模式不一样，外观模式带来的方便仅限于将几个方法调用联合起来。而代理对象位于某个对象和它的客户之间，可以保护对象的访问。
+
+  在真正的主体做某件工作开销很大时，代理模式很有用处。在web应用中，开销最大的操作之一就是网络请求，此时尽可能地合并http请求是有意义的。
+- 中介者模式
+- 观察者模式
+
+### 第八章 设计模式(2018.3.25~2018.3.2？)
+以下推荐的访问和修改DOM树的模式，主要考虑点是性能方面。
+
+Dom操作性能不好，这是影响javascript性能最主要的原因。性能不好是因为浏览器的Dom实现通常是和js引擎分离的。
+
+一个原则就是Dom访问的次数应该减少到最低
+1. 避免在环境中访问dom
+2. 将dom引用赋给本地变量，然后操作本地变量
+3. 当可能的时候使用selectors API（这个是what）
+4. 遍历HTML collections时缓存length（貌似是动态的）
+
+说曹操曹操到
+
+使用selectorAPI是指使用这个方法：
+```
+document.querySelector("ul .selected");
+document.querySelectorAll("#widget .class");
+```
+这两个方法接受一个css选择器字符串，返回匹配这个选择器的dom列表，querySlector只返回第一个匹配的dom。**selectors API在现代浏览器可用，它总是会比你使用其他dom方法做同样的选择要快。**
+
+**document.getElementById(id)是找到一个dom元素最容易也是最快的方法**
+
+- dom操作
+除了访问dom元素之外，改变它们，删除其中的一些或是添加新的元素。更新dom会导致浏览器重绘屏幕，也经常导致重新计算元素的位置，这些操作的代价是很高的。
+
+**通用的原则是尽量少的更新dom**
+
+当你需要添加一棵相对较大的子树的时候，应该在完成这个树的构建之后再放到文档树中。**为了达到这个目的可以使用文档碎片来包含节点。**
+`frag = document.createDocumentFragment();`
+
+- 事件
+在浏览器脚本编程中，另一块充满兼容性问题并且带来很多不愉快的区域就是李安琪事件。借用库。
+
+  - 事件处理
+  - 事件委托
