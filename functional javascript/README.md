@@ -37,3 +37,5 @@
   它的作用是将pred函数(返回布尔值的比如lessThan,greaterThan之类的比较函数)转换成返回-1, 0, 1形式的函数.  
   pred函数能够独立发挥作用.  
   使用comparator转换的目的是为了能在sort中使用.
+
+- data as abstraction
