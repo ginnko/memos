@@ -250,5 +250,6 @@ xcuserdata/
 *.xccheckout
 *.xcscmblueprint
 
+.vscode
 
 # End of https://www.gitignore.io/api/node,linux,reactnative
