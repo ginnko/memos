@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>proxy Mode</title>
+</head>
+<body>
+  
+</body>
+<script>
+  var myImage = (function() {
+    var imgNode = document.createElement('img');
+    document.body.appendChild(imgNode);
+    return {
+      setSrc: function(src) {
+        imgNode.src = src;
+      }
+    };
+  })();
+
+  var proxyImage = (function() {
+    var img = new Image;
+    img.onload = function() {
+      myImage.setSrc(this.src);
+    }
+    return {
+      setSrc: function(src) {
+        myImage.setSrc('loading.gif');
+        img.src = src;
+      }
+    };
+  }
+  )();
+
+  proxyImage.setSrc('https://vignette.wikia.nocookie.net/overlordmaruyama/images/d/d5/Overlord_Characters.png/revision/latest?cb=20160619122954');
+</script>
+</html>
