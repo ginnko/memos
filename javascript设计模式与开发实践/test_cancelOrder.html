@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>撤销命令</title>
+</head>
+<body>
+  <div id="ball" style="position:absolute;background:#000;width:50px;height:50px;top: 300px;"></div>
+  输入小球移动后的位置：<input id="pos" />
+  <button id="moveBtn">开始移动</button>
+  <button id="cancelBtn">cancel</button>
+</body>
+<script>
+  var ball = document.getElementById('ball');
+  var pos = document.getElementById('pos');
+  var moveBtn = document.getElementById('moveBtn');
+  var cancelBtn = document.getElementById('cancelBtn');
+
+  // 使用命令模式
+  // 看了下面这段代码才感觉命令模式的核心是command对象或者用于封装的闭包
+  var MoveCommand = function(receiver, pos) {
+    this.receiver = receiver;
+    this.pos = pos;
+    this.oldPos = null;
+  };
+
+  MoveCommand.prototype.execute = function() {
+    this.receiver.start('left', this.pos, 1000, 'strongEaseOut');
+    this.oldPos = this.receiver.dom.getBoundingClientRect()[this.receiver.propertyName]; // 记录小球开始移动前的位置
+  };
+
+  MoveCommand.prototype.undo = function() {
+    this.receiver.start('left', this.oldPos, 1000, 'strongEaseOut');
+  };
+
+  var moveCommand;
+
+  moveBtn.onclick = function() {
+    var animate = new Animate(ball);
+    moveCommand = new MoveCommand(animate, pos.value);
+    moveCommand.execute();
+  };
+
+  cancelBtn.onclick = function() {
+    moveCommand.undo();
+  };
+
+  // animate类
+  var tween = {
+    linear: function(t, b, c, d) {
+      return c * t / d + b;
+    },
+    easeIn: function(t, b, c, d) {
+      return c * (t / b) * t + b;
+    },
+    strongEaseIn: function(t, b, c, d) {
+      return c * (t /= d) * t * t * t * t +b;
+    },
+    strongEaseOut: function(t, b, c, d) {
+      return c * ( ( t = t / d - 1) * t * t * t * t + 1 ) + b;
+    },
+    sineaseIn: function( t, b, c, d ){
+    return c * ( t /= d) * t * t + b;
+    },
+    sineaseOut: function(t,b,c,d){
+    return c * ( ( t = t / d - 1) * t * t + 1 ) + b;
+    }
+  };
+  
+  var Animate = function(dom) {
+    this.dom = dom;
+    this.startTime = 0;
+    this.startPos = 0;
+    this.endPos = 0;
+    this.propertyName = null;
+    this.easing = null;
+    this.duration = null;
+  };
+  
+  Animate.prototype.start = function(propertyName, endPos, duration, easing) {
+    this.startTime = +new Date();
+    this.startPos = this.dom.getBoundingClientRect()[propertyName];
+    console.log(this.startPos);
+    this.propertyName = propertyName;
+    this.endPos = endPos;
+    this.duration = duration;
+    this.easing = tween[easing];
+    
+    var self = this;
+    var timeId = setInterval(function() {
+      if (self.step() === false) {
+        clearInterval(timeId);
+      }
+    }, 19);
+  };
+  
+  Animate.prototype.step = function() {
+    var t = +new Date();
+    if (t >= this.startTime + this.duration) {
+      this.update(this.endPos);
+      return false;
+    }
+    var pos = this.easing(t - this.startTime, this.startPos, this.endPos - this.startPos, this.duration);
+    this.update(pos);
+  };
+  
+  Animate.prototype.update = function(pos) {
+    this.dom.style[this.propertyName] = pos + 'px';
+  };
+</script>
+</html>
