@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Aop应用——数据统计上报</title>
+</head>
+<body>
+  <button tag="login" id="button">点击代开登录浮层</button>
+</body>
+<script>
+  Function.prototype.after = function(afterfn) {
+    var _self = this;
+    return function() {
+      var ret = _self.apply(this, arguments);
+      afterfn.apply(this, arguments);
+      return ret;
+    }
+  };
+
+  var showLogin = function() {
+    console.log('打开登录浮层');
+  };
+
+  var log = function() {
+    console.log(`上传标签为：${this.getAttribute('tag')}`);
+  };
+
+  showLogin = showLogin.after(log);
+  document.getElementById('button').onclick = showLogin;
+</script>
+</html>

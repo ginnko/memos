@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>AOP应用——插件式表单验证</title>
+</head>
+<body>
+  用户名： <input type="text" id="username" />
+  密码：  <input type="password" id="password" />
+  <input id="submitBtn" type="button" value="提交" />
+</body>
+<script>
+  var username = document.getElementById('username'),
+      password = document.getElementById('password'),
+      submitBtn = document.getElementById('submitBtn');
+
+  var ajax = function(param) {
+    console.log(param);
+  };
+
+  var validate = function() {
+    if (username.value === '') {
+      console.log('用户名不能为空');
+      return false;
+    }
+    if (password.value === '') {
+      console.log('密码不能为空');
+      return false;
+    }
+  };
+
+  var formSubmit = function() {
+    if (validata() === false) {
+      return;
+    }
+    var param = {
+      username: username.value,
+      password: password.value
+    };
+
+    ajax(param);
+  };
+
+  submitBtn.onclick = function() {
+    formSubmit();
+  };
+</script>
+</html>
