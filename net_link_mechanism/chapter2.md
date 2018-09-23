@@ -95,8 +95,8 @@ write()
 
     提交数据的情况，比如在博客或者论坛上发表一篇长文就属于这种情况。
 
-    ![TCP拆分包](./images/TCP拆分包.png)
 
+    ![TCP拆分包](./images/TCP拆分包.PNG)
 
 
 
