@@ -7,4 +7,5 @@
 4. 《javascript模式》读书笔记 *(刷完)(2018.3.5~2018.3.26)*
 5. 《functional javascript》读书笔记 *(暂停)(2018.3.26~)*
 6. 《图解http》读书笔记 *(刷完)(2018.3.27~2018.4.9)*
-7. 《Eloquent JavaScript》读书笔记 *(in progress)(2018.4.9~)*
+7. 《Eloquent JavaScript》读书笔记 *(暂停)(2018.4.9~)*
+8. 《深入浅出Node.js》读书笔记 *(进行中)(2019.1.13~)*
